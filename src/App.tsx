@@ -10,9 +10,11 @@ const months = [
 
 function CountdownBox() {
   const [daysLeft, setDaysLeft] = useState('Calculando...');
+  const date = new Date('2025-11-21')
+  const targetDatePtBr = date.toLocaleDateString('pt-BR')
+  const targetDate = date.getTime();
 
   useEffect(() => {
-    const targetDate = new Date('2025-11-20').getTime();
     const update = () => {
       const now = new Date().getTime();
       const distance = targetDate - now;
@@ -27,6 +29,7 @@ function CountdownBox() {
   return (
     <div className="countdown-box">
       <strong>⏳ Contagem Regressiva:</strong> <span>{daysLeft}</span>
+      <div className='target-date'><strong>Dia da viagem:</strong> {targetDatePtBr}</div>
     </div>
   );
 }
@@ -159,7 +162,7 @@ function Contributions({ onTotalContributionsChange } : {onTotalContributionsCha
     <section>
       <hgroup>
         <h2>Contribuição</h2>
-        <h3>por Viajante, por Mês</h3>
+        <h3>por viajante, por mês</h3>
       </hgroup>
       <div className="contributions-scroll">
         {months.map((month) => (
@@ -179,9 +182,10 @@ function App() {
       <nav className="nav">
         <strong>Trip Organizer</strong>
         <div className="nav-links">
-          <a href="#">Home</a>
+          {/* <a href="#">Home</a>
           <a href="#">Trips</a>
-          <a href="#" className="button">New Trip</a>
+          <a href="#" className="button">New Trip</a> */}
+          <img src="/trips_planner/favicon.png" alt="" />
         </div>
       </nav>
 
@@ -189,7 +193,7 @@ function App() {
         <CountdownBox />
         <div className="grid">
           <CostSummary onEstimatedCostChange={setEstimatedCost} />
-        <h3>Progress Toward Goal</h3>
+        <h3>Barra de evolução financeira</h3>
         <ProgressBar totalRaised={totalContributions} tripTotal={estimatedCost} />
           <Contributions onTotalContributionsChange={setTotalContributions} />
         </div>
