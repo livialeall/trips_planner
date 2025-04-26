@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import './index.css';
 import ProgressBar from './Components/ProgressBar';
 
@@ -31,7 +31,7 @@ function CountdownBox() {
   );
 }
 
-function CostSummary({ onEstimatedCostChange }) {
+function CostSummary({ onEstimatedCostChange } : {onEstimatedCostChange: (totalCost: number) => void }) {
   const [costs, setCosts] = useState({
     transportation: 0,
     food: 0,
@@ -81,7 +81,7 @@ function CostSummary({ onEstimatedCostChange }) {
   );
 }
 
-function MonthlyContribution({ month, onMonthTotalChange }) {
+function MonthlyContribution({ month, onMonthTotalChange }: { month: string; onMonthTotalChange: (month: string, total: number) => void }) {
   const [contributions, setContributions] = useState(
     people.map(() => ({ caixinha: 0, casa: 0 }))
   );
@@ -143,12 +143,12 @@ function MonthlyContribution({ month, onMonthTotalChange }) {
 }
 
 
-function Contributions({ onTotalContributionsChange }) {
+function Contributions({ onTotalContributionsChange } : {onTotalContributionsChange: (total: number) => void} ) {
   const [monthlyTotals, setMonthlyTotals] = useState({});
 
   useEffect(() => {
-    const total = Object.values(monthlyTotals).reduce((acc, val) => acc + val, 0);
-    onTotalContributionsChange(total);
+    const total = Object.values(monthlyTotals).reduce((acc, val) => (acc as number) + (val as number), 0);
+    onTotalContributionsChange(total as number);
   }, [monthlyTotals, onTotalContributionsChange]);
 
   const handleMonthTotalChange = (month: string, total: number) => {
