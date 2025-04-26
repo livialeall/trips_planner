@@ -1,0 +1,142 @@
+:root {
+  --primary: #1095c2;
+  --primary-hover: #bcc7cf;
+  --background-color: #11191f;
+  --accent: #bbc5c3;
+  --border: #2f3d47;
+  --border-focus: #56636d;
+  --text:#e1e6eb;
+  --background-color-progress: #202d36;
+}
+
+body {
+  background-color: var(--background-color); 
+  font-family: system-ui, sans-serif;
+  padding: 0;
+  margin: 0;
+  color: var(--text);
+}
+
+.container {
+  padding: 2rem;
+  margin: 0 auto;
+  max-width: 768px;
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+textarea,input {
+  width: 100%;
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background-color: var(--background-color);
+  font-size: 1rem;
+  color: var(--accent);
+  text-align: center;
+
+}
+
+input:focus {
+  border-color: var(--border-focus); /* muda a borda para verde clarinho */
+  outline: none; /* tira aquele contorno padrão feio */
+}
+.nav-links a {
+  margin-left: 1rem;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.button {
+  padding: 0.5rem 1rem;
+  background: var(--primary);
+  color: white;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+.countdown-box {
+  background-color: var(--border);
+  border: 1px solid var(--border);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  text-align: center;
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+table {
+  width: 100%;
+  margin-bottom: 1rem;
+  border-collapse: collapse;
+}
+
+th, td {
+  border: 1px solid var(--border);
+  padding: 0.5rem;
+  text-align: center;
+}
+
+input[type="number"] {
+  width: 70px;
+  padding: 0.25rem;
+  margin: 0 auto;
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+}
+
+details summary {
+  cursor: pointer;
+  font-weight: bold;
+  background: var(--border);
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin-top: 1rem;
+}
+
+/* Barra de progresso */
+.progress-container {
+  background-color: var(--border);
+  border-radius: 5px;
+  padding: 1rem;
+  align-items: center;
+  flex: 1;
+}
+
+.progress-bar-wrapper {
+  background-color: var(--accent);
+  height: 24px;
+  border-radius: 12px;
+  margin: 0.5rem auto;
+}
+
+.progress-bar {
+  background-color: var(--background-color-progress);
+  height: 100%;
+  transition: width 0.3s ease-in-out;
+  border-radius: 12px;
+}
+
+.progress-container p{
+  margin: 0px;
+}
+
+footer {
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #777;
+}
+
+.contributions-scroll {
+  max-height: 60vh;
+  overflow-y: auto;
+} 
