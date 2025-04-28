@@ -160,7 +160,7 @@ function Contributions({ onTotalContributionsChange, onContributionsChange }: { 
   useEffect(() => {
     const total = Object.values(monthlyData).reduce((acc, month: any) => {
       const monthTotal = Object.values(month).reduce((sum: any, person: any) => sum + person.caixinha + person.casa, 0);
-      return (acc as number) + monthTotal;
+      return (acc as number) + (monthTotal as number );
     }, 0);
     onTotalContributionsChange(total as number);
     onContributionsChange(monthlyData);
