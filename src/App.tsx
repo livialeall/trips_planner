@@ -19,7 +19,7 @@ function CountdownBox() {
       const now = new Date().getTime();
       const distance = targetDate - now;
       const days = Math.ceil(distance / (1000 * 60 * 60 * 24));
-      setDaysLeft(days > 0 ? `${days} dias restantes` : 'Chegou o grande dia! 🎉');
+      setDaysLeft(days > 0 ? `${days}` : 'Chegou o grande dia! 🎉');
     };
     update();
     const interval = setInterval(update, 3600000);
@@ -28,7 +28,7 @@ function CountdownBox() {
 
   return (
     <div className="countdown-box">
-      <strong>⏳ Contagem Regressiva:</strong> <span>{daysLeft}</span>
+      <strong>⏳ Faltam:</strong> <span>{daysLeft} dias </span>
       <div className='target-date'><strong>Dia da viagem:</strong> {targetDatePtBr}</div>
     </div>
   );
