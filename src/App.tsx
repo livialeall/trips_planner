@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import './index.css';
 import ProgressBar from './Components/ProgressBar';
+import { db } from './firebase'; // import do firebase configurado
+import { collection, doc, setDoc } from 'firebase/firestore';
 
 const people = ['Lívia', 'Renê', 'Sálvia', 'Matheus', 'Alexandre', 'Thais', 'Guilherme', 'Mariana'];
 const months = [
@@ -10,8 +12,8 @@ const months = [
 
 function CountdownBox() {
   const [daysLeft, setDaysLeft] = useState('Calculando...');
-  const date = new Date('2025-11-21')
-  const targetDatePtBr = date.toLocaleDateString('pt-BR')
+  const date = new Date('2025-11-21');
+  const targetDatePtBr = date.toLocaleDateString('pt-BR');
   const targetDate = date.getTime();
 
   useEffect(() => {
@@ -34,7 +36,7 @@ function CountdownBox() {
   );
 }
 
-function CostSummary({ onEstimatedCostChange } : {onEstimatedCostChange: (totalCost: number) => void }) {
+function CostSummary({ onEstimatedCostChange, onCostsChange }: { onEstimatedCostChange: (totalCost: number) => void, onCostsChange: (costs: any) => void }) {
   const [costs, setCosts] = useState({
     transportation: 0,
     food: 0,
@@ -45,7 +47,8 @@ function CostSummary({ onEstimatedCostChange } : {onEstimatedCostChange: (totalC
 
   useEffect(() => {
     onEstimatedCostChange(totalCost);
-  }, [costs, onEstimatedCostChange]);
+    onCostsChange(costs);
+  }, [costs, onEstimatedCostChange, onCostsChange]);
 
   const handleChange = (key: string, value: number) => {
     setCosts((prev) => ({ ...prev, [key]: value }));
@@ -84,23 +87,30 @@ function CostSummary({ onEstimatedCostChange } : {onEstimatedCostChange: (totalC
   );
 }
 
-function MonthlyContribution({ month, onMonthTotalChange }: { month: string; onMonthTotalChange: (month: string, total: number) => void }) {
+function MonthlyContribution({ month, onMonthDataChange }: { month: string; onMonthDataChange: (month: string, data: any) => void }) {
   const [contributions, setContributions] = useState(
     people.map(() => ({ caixinha: 0, casa: 0 }))
   );
 
-  const caixinhaTotal = contributions.reduce((acc, contrib) => acc + contrib.caixinha, 0);
-  const casaTotal = contributions.reduce((acc, contrib) => acc + contrib.casa, 0);
-
   useEffect(() => {
-    onMonthTotalChange(month, caixinhaTotal + casaTotal);
-  }, [contributions, month, onMonthTotalChange]);
+    const monthData: any = {};
+    people.forEach((person, idx) => {
+      monthData[person] = {
+        caixinha: contributions[idx].caixinha,
+        casa: contributions[idx].casa,
+      };
+    });
+    onMonthDataChange(month, monthData);
+  }, [contributions, month, onMonthDataChange]);
 
   const handleChange = (index: number, key: 'caixinha' | 'casa', value: number) => {
     const updated = [...contributions];
     updated[index][key] = value;
     setContributions(updated);
   };
+
+  const caixinhaTotal = contributions.reduce((acc, contrib) => acc + contrib.caixinha, 0);
+  const casaTotal = contributions.reduce((acc, contrib) => acc + contrib.casa, 0);
 
   return (
     <details>
@@ -133,7 +143,6 @@ function MonthlyContribution({ month, onMonthTotalChange }: { month: string; onM
               </td>
             </tr>
           ))}
-          {/* Linha Total separando Caixinha e Casa */}
           <tr style={{ fontWeight: 'bold', backgroundColor: '#202d36' }}>
             <td>Total</td>
             <td>R$ {caixinhaTotal.toFixed(2)}</td>
@@ -145,17 +154,20 @@ function MonthlyContribution({ month, onMonthTotalChange }: { month: string; onM
   );
 }
 
-
-function Contributions({ onTotalContributionsChange } : {onTotalContributionsChange: (total: number) => void} ) {
-  const [monthlyTotals, setMonthlyTotals] = useState({});
+function Contributions({ onTotalContributionsChange, onContributionsChange }: { onTotalContributionsChange: (total: number) => void, onContributionsChange: (data: any) => void }) {
+  const [monthlyData, setMonthlyData] = useState({});
 
   useEffect(() => {
-    const total = Object.values(monthlyTotals).reduce((acc, val) => (acc as number) + (val as number), 0);
+    const total = Object.values(monthlyData).reduce((acc, month: any) => {
+      const monthTotal = Object.values(month).reduce((sum: any, person: any) => sum + person.caixinha + person.casa, 0);
+      return (acc as number) + monthTotal;
+    }, 0);
     onTotalContributionsChange(total as number);
-  }, [monthlyTotals, onTotalContributionsChange]);
+    onContributionsChange(monthlyData);
+  }, [monthlyData, onTotalContributionsChange, onContributionsChange]);
 
-  const handleMonthTotalChange = (month: string, total: number) => {
-    setMonthlyTotals(prev => ({ ...prev, [month]: total }));
+  const handleMonthDataChange = (month: string, data: any) => {
+    setMonthlyData(prev => ({ ...prev, [month]: data }));
   };
 
   return (
@@ -166,7 +178,7 @@ function Contributions({ onTotalContributionsChange } : {onTotalContributionsCha
       </hgroup>
       <div className="contributions-scroll">
         {months.map((month) => (
-          <MonthlyContribution key={month} month={month} onMonthTotalChange={handleMonthTotalChange} />
+          <MonthlyContribution key={month} month={month} onMonthDataChange={handleMonthDataChange} />
         ))}
       </div>
     </section>
@@ -176,15 +188,32 @@ function Contributions({ onTotalContributionsChange } : {onTotalContributionsCha
 function App() {
   const [estimatedCost, setEstimatedCost] = useState(0);
   const [totalContributions, setTotalContributions] = useState(0);
+  const [costs, setCosts] = useState({});
+  const [contributions, setContributions] = useState({});
+
+  const handleSaveFirebase = async () => {
+    try {
+      // Salvar os custos
+      await setDoc(doc(db, "tripData", "costs"), costs);
+
+      // Salvar as contribuições
+      const monthsCollection = collection(db, "tripData", "contributions", "months");
+      for (const [month, data] of Object.entries(contributions)) {
+        await setDoc(doc(monthsCollection, month), data);
+      }
+
+      alert("Dados salvos com sucesso no Firebase! 🎯");
+    } catch (error) {
+      console.error("Erro ao salvar no Firebase:", error);
+      alert("Erro ao salvar no Firebase.");
+    }
+  };
 
   return (
     <div className="container">
       <nav className="nav">
         <strong>Trip Organizer</strong>
         <div className="nav-links">
-          {/* <a href="#">Home</a>
-          <a href="#">Trips</a>
-          <a href="#" className="button">New Trip</a> */}
           <img src="/trips_planner/favicon.png" alt="" />
         </div>
       </nav>
@@ -192,10 +221,17 @@ function App() {
       <main>
         <CountdownBox />
         <div className="grid">
-          <CostSummary onEstimatedCostChange={setEstimatedCost} />
-        <h3>Barra de evolução financeira</h3>
-        <ProgressBar totalRaised={totalContributions} tripTotal={estimatedCost} />
-          <Contributions onTotalContributionsChange={setTotalContributions} />
+          <CostSummary onEstimatedCostChange={setEstimatedCost} onCostsChange={setCosts} />
+          <h3>Barra de evolução financeira</h3>
+          <ProgressBar totalRaised={totalContributions} tripTotal={estimatedCost} />
+          <Contributions onTotalContributionsChange={setTotalContributions} onContributionsChange={setContributions} />
+        </div>
+
+        {/* Botão para salvar */}
+        <div style={{ marginTop: '20px' }}>
+          <button onClick={handleSaveFirebase} style={{ padding: '10px', fontWeight: 'bold', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '5px' }}>
+            Salvar
+          </button>
         </div>
       </main>
 
