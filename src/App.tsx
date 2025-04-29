@@ -2,13 +2,26 @@ import { useEffect, useState } from 'react';
 import './index.css';
 import ProgressBar from './Components/ProgressBar';
 import { db } from './firebase'; // import do firebase configurado
-import { collection, doc, setDoc } from 'firebase/firestore';
+import { collection, doc, setDoc,getDoc, getDocs } from 'firebase/firestore';
 
 const people = ['Lívia', 'Renê', 'Sálvia', 'Matheus', 'Alexandre', 'Thais', 'Guilherme', 'Mariana'];
 const months = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
+
+type PersonContribution = {
+  caixinha: number;
+  casa: number;
+};
+
+type MonthContributions = {
+  [person: string]: PersonContribution;
+};
+
+type AllContributions = {
+  [month: string]: MonthContributions;
+};
 
 function CountdownBox() {
   const [daysLeft, setDaysLeft] = useState('Calculando...');
@@ -30,28 +43,34 @@ function CountdownBox() {
 
   return (
     <div className="countdown-box">
-      <strong>⏳ Faltam:</strong> <span>{daysLeft} dias </span>
+      <span>⏳ Faltam <strong> {daysLeft}  </strong> dias</span>
       <div className='target-date'><strong>Dia da viagem:</strong> {targetDatePtBr}</div>
     </div>
   );
 }
 
-function CostSummary({ onEstimatedCostChange, onCostsChange }: { onEstimatedCostChange: (totalCost: number) => void, onCostsChange: (costs: any) => void }) {
+function CostSummary({ onEstimatedCostChange, onCostsChange, initialCosts }: { onEstimatedCostChange: (totalCost: number) => void, onCostsChange: (costs: any) => void, initialCosts: any }) {
   const [costs, setCosts] = useState({
     transportation: 0,
     food: 0,
     accommodation: 0,
   });
 
+  useEffect(() => {
+    if (initialCosts) {
+      setCosts(initialCosts);
+    }
+  }, [initialCosts]);
+
   const totalCost = costs.transportation + costs.food + costs.accommodation;
 
-  useEffect(() => {
-    onEstimatedCostChange(totalCost);
-    onCostsChange(costs);
-  }, [costs, onEstimatedCostChange, onCostsChange]);
-
-  const handleChange = (key: string, value: number) => {
-    setCosts((prev) => ({ ...prev, [key]: value }));
+  const handleChange = (key: keyof typeof costs, value: number) => {
+    const updatedCosts = { ...costs, [key]: value };
+    setCosts(updatedCosts);
+    onEstimatedCostChange(
+      updatedCosts.transportation + updatedCosts.food + updatedCosts.accommodation
+    );
+    onCostsChange(updatedCosts);
   };
 
   return (
@@ -67,19 +86,37 @@ function CostSummary({ onEstimatedCostChange, onCostsChange }: { onEstimatedCost
         <tbody>
           <tr>
             <td>Transporte</td>
-            <td><input type="number" value={costs.transportation} onChange={(e) => handleChange('transportation', Number(e.target.value))} /></td>
+            <td>
+              <input
+                type="number"
+                value={costs.transportation ?? 0}
+                onChange={(e) => handleChange('transportation', Number(e.target.value))}
+              />
+            </td>
           </tr>
           <tr>
             <td>Alimentação</td>
-            <td><input type="number" value={costs.food} onChange={(e) => handleChange('food', Number(e.target.value))} /></td>
+            <td>
+              <input
+                type="number"
+                value={costs.food ?? 0}
+                onChange={(e) => handleChange('food', Number(e.target.value))}
+              />
+            </td>
           </tr>
           <tr>
             <td>Hospedagem</td>
-            <td><input type="number" value={costs.accommodation} onChange={(e) => handleChange('accommodation', Number(e.target.value))} /></td>
+            <td>
+              <input
+                type="number"
+                value={costs.accommodation ?? 0}
+                onChange={(e) => handleChange('accommodation', Number(e.target.value))}
+              />
+            </td>
           </tr>
           <tr style={{ fontWeight: 'bold', backgroundColor: '#202d36' }}>
             <th>Total</th>
-            <th>{totalCost}</th>
+            <th>R$ {totalCost.toFixed(2)}</th>
           </tr>
         </tbody>
       </table>
@@ -87,26 +124,37 @@ function CostSummary({ onEstimatedCostChange, onCostsChange }: { onEstimatedCost
   );
 }
 
-function MonthlyContribution({ month, onMonthDataChange }: { month: string; onMonthDataChange: (month: string, data: any) => void }) {
-  const [contributions, setContributions] = useState(
-    people.map(() => ({ caixinha: 0, casa: 0 }))
-  );
 
-  useEffect(() => {
-    const monthData: any = {};
-    people.forEach((person, idx) => {
-      monthData[person] = {
-        caixinha: contributions[idx].caixinha,
-        casa: contributions[idx].casa,
-      };
-    });
-    onMonthDataChange(month, monthData);
-  }, [contributions, month, onMonthDataChange]);
+function MonthlyContribution({
+  month,
+  onMonthDataChange,
+  initialMonthData,
+}: {
+  month: string;
+  onMonthDataChange: (month: string, data: any) => void;
+  initialMonthData: any;
+}) {
+  const [contributions, setContributions] = useState(
+    people.map((person) => ({
+      caixinha: initialMonthData?.[person]?.caixinha ?? 0,
+      casa: initialMonthData?.[person]?.casa ?? 0,
+    }))
+  );
 
   const handleChange = (index: number, key: 'caixinha' | 'casa', value: number) => {
     const updated = [...contributions];
     updated[index][key] = value;
     setContributions(updated);
+
+    // Atualiza no pai
+    const monthData: any = {};
+    people.forEach((person, idx) => {
+      monthData[person] = {
+        caixinha: updated[idx].caixinha,
+        casa: updated[idx].casa,
+      };
+    });
+    onMonthDataChange(month, monthData);
   };
 
   const caixinhaTotal = contributions.reduce((acc, contrib) => acc + contrib.caixinha, 0);
@@ -154,8 +202,14 @@ function MonthlyContribution({ month, onMonthDataChange }: { month: string; onMo
   );
 }
 
-function Contributions({ onTotalContributionsChange, onContributionsChange }: { onTotalContributionsChange: (total: number) => void, onContributionsChange: (data: any) => void }) {
-  const [monthlyData, setMonthlyData] = useState({});
+function Contributions({ onTotalContributionsChange, onContributionsChange, initialContributions }: { onTotalContributionsChange: (total: number) => void, onContributionsChange: (data: any) => void, initialContributions: any }) {
+  const [monthlyData, setMonthlyData] = useState<AllContributions>({});
+
+  useEffect(() => {
+    if (initialContributions) {
+      setMonthlyData(initialContributions);
+    }
+  }, [initialContributions]);
 
   useEffect(() => {
     const total = Object.values(monthlyData).reduce((acc, month: any) => {
@@ -163,11 +217,14 @@ function Contributions({ onTotalContributionsChange, onContributionsChange }: { 
       return (acc as number) + (monthTotal as number );
     }, 0);
     onTotalContributionsChange(total as number);
-    onContributionsChange(monthlyData);
-  }, [monthlyData, onTotalContributionsChange, onContributionsChange]);
+  }, [monthlyData, onTotalContributionsChange]);
 
   const handleMonthDataChange = (month: string, data: any) => {
-    setMonthlyData(prev => ({ ...prev, [month]: data }));
+    setMonthlyData(prev => {
+      const updated = { ...prev, [month]: data };
+      onContributionsChange(updated);
+      return updated;
+    });
   };
 
   return (
@@ -177,8 +234,13 @@ function Contributions({ onTotalContributionsChange, onContributionsChange }: { 
         <h3>por viajante, por mês</h3>
       </hgroup>
       <div className="contributions-scroll">
-        {months.map((month) => (
-          <MonthlyContribution key={month} month={month} onMonthDataChange={handleMonthDataChange} />
+       {months.map((month) => (
+          <MonthlyContribution
+            key={month}
+            month={month}
+            initialMonthData={monthlyData[month] ?? {}}
+            onMonthDataChange={handleMonthDataChange}
+          />
         ))}
       </div>
     </section>
@@ -190,6 +252,41 @@ function App() {
   const [totalContributions, setTotalContributions] = useState(0);
   const [costs, setCosts] = useState({});
   const [contributions, setContributions] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const costsDoc = await getDoc(doc(db, "tripData", "costs"));
+        if (costsDoc.exists()) {
+          const fetchedCosts = costsDoc.data();
+          setCosts(fetchedCosts);
+  
+          const totalFetchedCost = (fetchedCosts.transportation || 0) + (fetchedCosts.food || 0) + (fetchedCosts.accommodation || 0);
+          setEstimatedCost(totalFetchedCost);
+        }
+  
+        const monthsSnapshot = await getDocs(collection(db, "tripData", "contributions", "months"));
+        const contributionsData: any = {};
+        monthsSnapshot.forEach((docSnap) => {
+          contributionsData[docSnap.id] = docSnap.data();
+        });
+        setContributions(contributionsData);
+  
+        const total = Object.values(contributionsData).reduce((acc, month: any) => {
+          const monthTotal = Object.values(month).reduce((sum: any, person: any) => sum + person.caixinha + person.casa, 0);
+          return acc + monthTotal;
+        }, 0);
+        setTotalContributions(total);
+  
+      } catch (error) {
+        console.error("Erro ao buscar dados do Firebase:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
+    fetchData();
+  }, []);
 
   const handleSaveFirebase = async () => {
     try {
@@ -221,10 +318,10 @@ function App() {
       <main>
         <CountdownBox />
         <div className="grid">
-          <CostSummary onEstimatedCostChange={setEstimatedCost} onCostsChange={setCosts} />
+          <CostSummary onEstimatedCostChange={setEstimatedCost} onCostsChange={setCosts} initialCosts={costs}/>
           <h3>Barra de evolução financeira</h3>
           <ProgressBar totalRaised={totalContributions} tripTotal={estimatedCost} />
-          <Contributions onTotalContributionsChange={setTotalContributions} onContributionsChange={setContributions} />
+          <Contributions onTotalContributionsChange={setTotalContributions} onContributionsChange={setContributions} initialContributions={contributions}/>
         </div>
 
         {/* Botão para salvar */}
