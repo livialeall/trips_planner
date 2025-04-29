@@ -3,6 +3,8 @@ import './index.css';
 import ProgressBar from './Components/ProgressBar';
 import { db } from './firebase'; // import do firebase configurado
 import { collection, doc, setDoc,getDoc, getDocs } from 'firebase/firestore';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const people = ['Lívia', 'Renê', 'Sálvia', 'Matheus', 'Alexandre', 'Thais', 'Guilherme', 'Mariana'];
 const months = [
@@ -313,10 +315,10 @@ function App() {
         await setDoc(doc(monthsCollection, month), data);
       }
 
-      alert("Dados salvos com sucesso no Firebase! 🎯");
+      toast.success("Dados salvos com sucesso! 🎯");
     } catch (error) {
       console.error("Erro ao salvar no Firebase:", error);
-      alert("Erro ao salvar no Firebase.");
+      toast.error("Algo deu errado ao salvar. Tente novamente.");
     }
   };
 
@@ -339,13 +341,11 @@ function App() {
         </div>
 
         {/* Botão para salvar */}
-        <div style={{ marginTop: '20px' }}>
-          <button onClick={handleSaveFirebase} style={{ padding: '10px', fontWeight: 'bold', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '5px' }}>
+          <button onClick={handleSaveFirebase} style={{ marginTop:'20px', padding: '10px', fontWeight: 'bold', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '5px' }}>
             Salvar
           </button>
-        </div>
       </main>
-
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
       <footer>
         <small>Powered by <div>&lt;LEAL&gt;</div></small>
       </footer>

@@ -37,7 +37,7 @@ textarea,input {
   border-radius: 4px;
   background-color: var(--background-color);
   font-size: 1rem;
-  color: var(--accent);
+  color: var(--text);
   text-align: center;
 
 }
@@ -50,14 +50,6 @@ input:focus {
   margin-left: 1rem;
   text-decoration: none;
   color: var(--text);
-}
-
-.button {
-  padding: 0.5rem 1rem;
-  background: var(--border-focus);
-  color: white;
-  border-radius: 4px;
-  text-decoration: none;
 }
 
 .countdown-box {
