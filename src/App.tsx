@@ -135,30 +135,45 @@ function MonthlyContribution({
   initialMonthData: any;
 }) {
   const [contributions, setContributions] = useState(
-    people.map((person) => ({
-      caixinha: initialMonthData?.[person]?.caixinha ?? 0,
-      casa: initialMonthData?.[person]?.casa ?? 0,
-    }))
+    people.reduce((acc, person) => {
+      acc[person] = {
+        caixinha: initialMonthData?.[person]?.caixinha ?? 0,
+        casa: initialMonthData?.[person]?.casa ?? 0,
+      };
+      return acc;
+    }, {} as MonthContributions)
   );
 
-  const handleChange = (index: number, key: 'caixinha' | 'casa', value: number) => {
-    const updated = [...contributions];
-    updated[index][key] = value;
-    setContributions(updated);
+  useEffect(() => {
+    setContributions(
+      people.reduce((acc, person) => {
+        acc[person] = {
+          caixinha: initialMonthData?.[person]?.caixinha ?? 0,
+          casa: initialMonthData?.[person]?.casa ?? 0,
+        };
+        return acc;
+      }, {} as MonthContributions)
+    );
+  }, [initialMonthData]); // <- ESSENCIAL
 
-    // Atualiza no pai
-    const monthData: any = {};
-    people.forEach((person, idx) => {
-      monthData[person] = {
-        caixinha: updated[idx].caixinha,
-        casa: updated[idx].casa,
-      };
-    });
-    onMonthDataChange(month, monthData);
+  const handleChange = (person: string, key: 'caixinha' | 'casa', value: number) => {
+    const updated = { ...contributions };
+    updated[person] = {
+      ...updated[person],
+      [key]: value,
+    };
+    setContributions(updated);
+    onMonthDataChange(month, updated);
   };
 
-  const caixinhaTotal = contributions.reduce((acc, contrib) => acc + contrib.caixinha, 0);
-  const casaTotal = contributions.reduce((acc, contrib) => acc + contrib.casa, 0);
+  const caixinhaTotal = Object.values(contributions).reduce(
+    (acc, contrib) => acc + contrib.caixinha,
+    0
+  );
+  const casaTotal = Object.values(contributions).reduce(
+    (acc, contrib) => acc + contrib.casa,
+    0
+  );
 
   return (
     <details>
@@ -172,21 +187,21 @@ function MonthlyContribution({
           </tr>
         </thead>
         <tbody>
-          {people.map((person, idx) => (
+          {people.map((person) => (
             <tr key={person}>
               <td>{person}</td>
               <td>
                 <input
                   type="number"
-                  value={contributions[idx].caixinha}
-                  onChange={(e) => handleChange(idx, 'caixinha', Number(e.target.value))}
+                  value={contributions[person]?.caixinha ?? 0}
+                  onChange={(e) => handleChange(person, 'caixinha', Number(e.target.value))}
                 />
               </td>
               <td>
                 <input
                   type="number"
-                  value={contributions[idx].casa}
-                  onChange={(e) => handleChange(idx, 'casa', Number(e.target.value))}
+                  value={contributions[person]?.casa ?? 0}
+                  onChange={(e) => handleChange(person, 'casa', Number(e.target.value))}
                 />
               </td>
             </tr>
@@ -201,6 +216,8 @@ function MonthlyContribution({
     </details>
   );
 }
+
+
 
 function Contributions({ onTotalContributionsChange, onContributionsChange, initialContributions }: { onTotalContributionsChange: (total: number) => void, onContributionsChange: (data: any) => void, initialContributions: any }) {
   const [monthlyData, setMonthlyData] = useState<AllContributions>({});
@@ -274,9 +291,9 @@ function App() {
   
         const total = Object.values(contributionsData).reduce((acc, month: any) => {
           const monthTotal = Object.values(month).reduce((sum: any, person: any) => sum + person.caixinha + person.casa, 0);
-          return acc + monthTotal;
+          return (acc as number) + (monthTotal as number);
         }, 0);
-        setTotalContributions(total);
+        setTotalContributions((total as number));
   
       } catch (error) {
         console.error("Erro ao buscar dados do Firebase:", error);
