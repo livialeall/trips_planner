@@ -269,7 +269,6 @@ function App() {
   const [totalContributions, setTotalContributions] = useState(0);
   const [costs, setCosts] = useState({});
   const [contributions, setContributions] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -297,8 +296,6 @@ function App() {
   
       } catch (error) {
         console.error("Erro ao buscar dados do Firebase:", error);
-      } finally {
-        setIsLoading(false);
       }
     };
   
