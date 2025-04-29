@@ -1,5 +1,6 @@
 :root {
   --primary: #1095c2;
+  --primary-hover-dark: #005a79;
   --primary-hover: #bcc7cf;
   --background-color: #11191f;
   --accent: #bbc5c3;
@@ -53,7 +54,7 @@ input:focus {
 }
 
 .countdown-box {
-  background-color: var(--border);
+  background-color: var(--primary-hover-dark);
   border: 1px solid var(--border);
   padding: 1rem;
   border-radius: 0.5rem;
@@ -98,6 +99,11 @@ details summary {
   margin-top: 1rem;
 }
 
+details summary:hover {
+  background-color: var(--primary-hover-dark);
+  transition: background-color 0.3s ease; 
+}
+
 /* Barra de progresso */
 .progress-container {
   background-color: var(--border);
@@ -115,7 +121,7 @@ details summary {
 }
 
 .progress-bar {
-  background-color: var(--background-color-progress);
+  background-color: var(--primary-hover-dark);
   height: 100%;
   transition: width 0.3s ease-in-out;
   border-radius: 12px;
@@ -136,3 +142,10 @@ footer {
   max-height: 60vh;
   overflow-y: auto;
 } 
+
+button:hover {
+  background-color: var(--primary-hover-dark);
+  transition: background-color 0.3s ease; 
+}
+
+button{ margin-top:20px; padding: 10px; font-weight: 'bold'; background-color: var(--primary); color: var(--text); border: none; border-radius: 5px; cursor: pointer}

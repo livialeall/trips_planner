@@ -341,7 +341,7 @@ function App() {
         </div>
 
         {/* Botão para salvar */}
-          <button onClick={handleSaveFirebase} style={{ marginTop:'20px', padding: '10px', fontWeight: 'bold', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '5px' }}>
+          <button onClick={handleSaveFirebase}>
             Salvar
           </button>
       </main>
