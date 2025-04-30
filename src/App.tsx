@@ -8,8 +8,8 @@ import 'react-toastify/dist/ReactToastify.css';
 
 const people = ['Lívia', 'Renê', 'Sálvia', 'Matheus', 'Alexandre', 'Thais', 'Guilherme', 'Mariana'];
 const months = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
+  'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+  'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
 ];
 
 type PersonContribution = {
