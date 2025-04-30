@@ -148,4 +148,24 @@ button:hover {
   transition: background-color 0.3s ease; 
 }
 
+hgroup h2 {
+  font-size: 1.6rem;
+  margin-bottom: 0.25rem;
+  color: var(--text);
+}
+
+hgroup h3 {
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: var(--accent);
+  margin-bottom: 1rem;
+}
+
+.grid > h3 {
+  font-size: 1.2rem;
+  color: var(--text);
+  margin: 1rem 0 0.5rem;
+  letter-spacing: 0.5px;
+}
+
 button{ margin-top:20px; padding: 10px; font-weight: 'bold'; background-color: var(--primary); color: var(--text); border: none; border-radius: 5px; cursor: pointer}

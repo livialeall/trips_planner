@@ -78,9 +78,9 @@ function CostSummary({ onEstimatedCostChange, onCostsChange, initialCosts }: { o
   return (
     <section>
       <hgroup>
-        <h2>Custos da Viagem</h2>
-        <h3>Custos estimados por categoria</h3>
-      </hgroup>
+      <h2>Estimativa de Custos da Viagem</h2>
+      <h3>Detalhamento por Categoria</h3>
+      </hgroup> 
       <table>
         <thead>
           <tr><th>Categoria</th><th>Valor Estimado</th></tr>
@@ -120,6 +120,10 @@ function CostSummary({ onEstimatedCostChange, onCostsChange, initialCosts }: { o
             <th>Total</th>
             <th>R$ {totalCost.toFixed(2)}</th>
           </tr>
+          <tr style={{ fontWeight: 'bold', backgroundColor: '#005a79' }}>
+          <th>Total unitário</th>
+          <th>R$ {(totalCost / people.length).toFixed(2)}</th>
+        </tr>
         </tbody>
       </table>
     </section>
@@ -179,7 +183,7 @@ function MonthlyContribution({
 
   return (
     <details>
-      <summary>{month} - Total: R$ {(caixinhaTotal + casaTotal).toFixed(2)}</summary>
+      <summary>{month} - Total: R$ {(caixinhaTotal + casaTotal).toFixed(2)} arrecadados</summary>
       <table>
         <thead>
           <tr>
@@ -249,8 +253,10 @@ function Contributions({ onTotalContributionsChange, onContributionsChange, init
   return (
     <section>
       <hgroup>
-        <h2>Contribuição</h2>
-        <h3>por viajante, por mês</h3>
+      <hgroup>
+        <h2>Contribuições Mensais</h2>
+        <h3>Distribuída por viajante</h3>
+      </hgroup>
       </hgroup>
       <div className="contributions-scroll">
        {months.map((month) => (
@@ -335,7 +341,7 @@ function App() {
         <CountdownBox />
         <div className="grid">
           <CostSummary onEstimatedCostChange={setEstimatedCost} onCostsChange={setCosts} initialCosts={costs}/>
-          <h3>Barra de evolução financeira</h3>
+          <h3>Progresso da Arrecadação</h3>
           <ProgressBar totalRaised={totalContributions} tripTotal={estimatedCost} />
           <Contributions onTotalContributionsChange={setTotalContributions} onContributionsChange={setContributions} initialContributions={contributions}/>
         </div>
