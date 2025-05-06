@@ -183,7 +183,7 @@ function MonthlyContribution({
 
   return (
     <details>
-      <summary>{month} - Total: R$ {(caixinhaTotal + casaTotal).toFixed(2)} arrecadados</summary>
+      <summary>{month} - Total: R$ {(caixinhaTotal + casaTotal).toFixed(2)}</summary>
       <table>
         <thead>
           <tr>
