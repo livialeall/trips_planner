@@ -1,9 +1,9 @@
 // App.tsx
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import AuthPage from "./AuthPage";
+import AuthPage from "./User/AuthPage";
 import PrivateRoute from "././utils/PrivateRoute";
-import UserTrips from "./UserTrips";
+import UserTrips from "./User/UserTrips";
 
 const App: React.FC = () => {
   return (
