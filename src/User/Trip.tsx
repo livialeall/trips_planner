@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import './index.css';
+import '../index.css';
 import ProgressBar from '../Components/ProgressBar';
 import { db } from '../firebase'; // import do firebase configurado
 import { collection, doc, setDoc,getDoc, getDocs } from 'firebase/firestore';

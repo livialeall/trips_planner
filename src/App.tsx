@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import AuthPage from "./User/AuthPage";
 import PrivateRoute from "././utils/PrivateRoute";
 import UserTrips from "./User/UserTrips";
+import Trip from "./User/Trip";
 
 const App: React.FC = () => {
   return (
@@ -15,6 +16,14 @@ const App: React.FC = () => {
           element={
             <PrivateRoute>
                <UserTrips />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/trip/:id"
+          element={
+            <PrivateRoute>
+               <Trip />
             </PrivateRoute>
           }
         />

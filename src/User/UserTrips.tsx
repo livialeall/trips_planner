@@ -1,4 +1,3 @@
-// MinhasViagens.tsx
 import React, { useState } from "react";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
@@ -28,6 +27,10 @@ const UserTrips: React.FC = () => {
       ...viagem,
     };
     setViagens((v) => [...v, nova]);
+  };
+
+  const handleVerDetalhes = (id: string) => {
+    navigate(`/trip/${id}`);  // Navegar para a tela de detalhes da viagem
   };
 
   return (
@@ -61,7 +64,12 @@ const UserTrips: React.FC = () => {
                   {v.data} • Pessoas: {v.pessoas}
                 </p>
               </div>
-              <button className="text-blue-600 hover:text-blue-800" title="Ver detalhes">
+              <button
+                className="text-blue-600 hover:text-blue-800"
+                onClick={() => handleVerDetalhes(v.id)} // Ao clicar, navega para a tela de detalhes
+                title="Ver detalhes"
+              >
+                Ver detalhes
               </button>
             </li>
           ))}
