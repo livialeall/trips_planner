@@ -1,4 +1,3 @@
-// AuthPage.tsx
 import React, { useState, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../firebase";
@@ -12,7 +11,7 @@ const AuthPage: React.FC = () => {
   const [senha, setSenha] = useState<string>("");
   const [erro, setErro] = useState<string>("");
   const [modoCadastro, setModoCadastro] = useState<boolean>(false);
-  const navigate = useNavigate(); // <-- Adicionado aqui
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -21,63 +20,82 @@ const AuthPage: React.FC = () => {
     try {
       if (modoCadastro) {
         await createUserWithEmailAndPassword(auth, email, senha);
-        alert("Cadastro realizado com sucesso!");
+        alert("Conta criada com sucesso! 🎉");
       } else {
         await signInWithEmailAndPassword(auth, email, senha);
-        alert("Login realizado com sucesso!");
+        alert("Bem-vindo(a) de volta!");
       }
-      // Redireciona para a página de viagens
       navigate("/userTrip");
     } catch (err: any) {
-      setErro(err.message);
+      setErro("Ops! Algo deu errado. Verifique seus dados e tente novamente.");
     }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
+    <div className="container" style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
       <form
         onSubmit={handleSubmit}
-        className="bg-white p-8 rounded shadow-md w-full max-w-md"
+        style={{
+          backgroundColor: "var(--border)",
+          padding: "2rem",
+          borderRadius: "8px",
+          boxShadow: "0 0 10px rgba(0,0,0,0.3)",
+          width: "100%",
+          maxWidth: "400px"
+        }}
       >
-        <h2 className="text-2xl font-bold mb-6 text-center">
-          {modoCadastro ? "Cadastro" : "Login"}
+        <h2 style={{ fontSize: "1.6rem", textAlign: "center", color: "var(--text)", marginBottom: "0.5rem" }}>
+          {modoCadastro ? "Criar nova conta" : "Entrar na sua conta"}
         </h2>
 
-        {erro && <p className="text-red-500 mb-4">{erro}</p>}
+        <p style={{ textAlign: "center", fontSize: "0.95rem", color: "var(--accent)", marginBottom: "1.5rem" }}>
+          {modoCadastro
+            ? "Preencha os campos abaixo para começar a usar o app."
+            : "Acesse sua conta para continuar sua jornada."}
+        </p>
+
+        {erro && (
+          <p style={{ color: "red", textAlign: "center", marginBottom: "1rem" }}>
+            {erro}
+          </p>
+        )}
 
         <input
           type="email"
-          placeholder="Email"
+          placeholder="Digite seu email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full p-2 mb-4 border rounded"
           required
         />
 
         <input
           type="password"
-          placeholder="Senha"
+          placeholder="Digite sua senha"
           value={senha}
           onChange={(e) => setSenha(e.target.value)}
-          className="w-full p-2 mb-4 border rounded"
           required
+          style={{ marginTop: "1rem" }}
         />
 
-        <button
-          type="submit"
-          className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-        >
-          {modoCadastro ? "Cadastrar" : "Entrar"}
+        <button type="submit">
+          {modoCadastro ? "Criar conta" : "Entrar"}
         </button>
 
-        <p className="mt-4 text-center">
-          {modoCadastro ? "Já tem uma conta?" : "Não tem uma conta?"}{" "}
+        <p style={{ marginTop: "1.5rem", textAlign: "center", fontSize: "0.9rem", color: "var(--accent)" }}>
+          {modoCadastro ? "Já tem uma conta?" : "Ainda não tem uma conta?"}{" "}
           <button
             type="button"
             onClick={() => setModoCadastro(!modoCadastro)}
-            className="text-blue-600 underline"
+            style={{
+              background: "none",
+              border: "none",
+              color: "var(--primary)",
+              cursor: "pointer",
+              textDecoration: "underline",
+              fontSize: "0.9rem"
+            }}
           >
-            {modoCadastro ? "Entrar" : "Cadastrar"}
+            {modoCadastro ? "Fazer login" : "Cadastrar-se"}
           </button>
         </p>
       </form>
