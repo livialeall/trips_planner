@@ -357,3 +357,63 @@ h3 {
 .modal-actions button:first-child:hover {
   background-color: var(--border);
 }
+
+/* Add to your existing CSS */
+.trip-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.trip-actions button {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.8rem;
+}
+
+.cost-summary {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.cost-categories {
+  list-style-type: none;
+  padding: 0;
+  margin: 0.25rem 0 0 0;
+  font-size: 0.8rem;
+}
+
+.cost-categories li {
+  display: inline-block;
+  margin-right: 0.5rem;
+  color: var(--accent);
+}
+
+.trip-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.trip-edit-form input {
+  padding: 0.5rem;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.cost-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.delete-button {
+  background-color: #dc3545;
+}
+
+.delete-button:hover {
+  background-color: #bb2d3b;
+}
