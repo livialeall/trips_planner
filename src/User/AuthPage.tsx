@@ -4,35 +4,53 @@ import { auth } from "../firebase";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
 } from "firebase/auth";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const AuthPage: React.FC = () => {
   const [email, setEmail] = useState<string>("");
   const [senha, setSenha] = useState<string>("");
-  const [erro, setErro] = useState<string>("");
   const [modoCadastro, setModoCadastro] = useState<boolean>(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setErro("");
 
     try {
       if (modoCadastro) {
         await createUserWithEmailAndPassword(auth, email, senha);
-        alert("Conta criada com sucesso! 🎉");
+        toast.success("Conta criada com sucesso! 🎉");
       } else {
         await signInWithEmailAndPassword(auth, email, senha);
-        alert("Bem-vindo(a) de volta!");
+        toast.success("Bem-vindo(a) de volta!");
       }
-      navigate("/userTrip");
+      setTimeout(() => navigate("/trips_planner/user"), 1500);
     } catch (err: any) {
-      setErro("Ops! Algo deu errado. Verifique seus dados e tente novamente.");
+      toast.error("Ops! Algo deu errado. Verifique seus dados e tente novamente.");
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+      toast.success("Login com Google realizado com sucesso! 🚀");
+      setTimeout(() => navigate("/trips_planner/user"), 1500);
+    } catch (error) {
+      toast.error("Falha no login com Google. Tente novamente.");
     }
   };
 
   return (
-    <div className="container" style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <div className="container" style={{
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center"
+    }}>
       <form
         onSubmit={handleSubmit}
         style={{
@@ -41,24 +59,31 @@ const AuthPage: React.FC = () => {
           borderRadius: "8px",
           boxShadow: "0 0 10px rgba(0,0,0,0.3)",
           width: "100%",
-          maxWidth: "400px"
+          maxWidth: "400px",
+          boxSizing: "border-box"
         }}
       >
-        <h2 style={{ fontSize: "1.6rem", textAlign: "center", color: "var(--text)", marginBottom: "0.5rem" }}>
+        <ToastContainer />
+
+        <h2 style={{
+          fontSize: "1.6rem",
+          textAlign: "center",
+          color: "var(--text)",
+          marginBottom: "0.5rem"
+        }}>
           {modoCadastro ? "Criar nova conta" : "Entrar na sua conta"}
         </h2>
 
-        <p style={{ textAlign: "center", fontSize: "0.95rem", color: "var(--accent)", marginBottom: "1.5rem" }}>
+        <p style={{
+          textAlign: "center",
+          fontSize: "0.95rem",
+          color: "var(--accent)",
+          marginBottom: "1.5rem"
+        }}>
           {modoCadastro
             ? "Preencha os campos abaixo para começar a usar o app."
             : "Acesse sua conta para continuar sua jornada."}
         </p>
-
-        {erro && (
-          <p style={{ color: "red", textAlign: "center", marginBottom: "1rem" }}>
-            {erro}
-          </p>
-        )}
 
         <input
           type="email"
@@ -66,6 +91,18 @@ const AuthPage: React.FC = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          style={{
+            width: "100%",
+            padding: "1rem",
+            border: "1px solid var(--border)",
+            borderRadius: "4px",
+            backgroundColor: "var(--background-color)",
+            fontSize: "1rem",
+            color: "var(--text)",
+            textAlign: "center",
+            boxSizing: "border-box",
+            marginBottom: "1rem"
+          }}
         />
 
         <input
@@ -74,14 +111,60 @@ const AuthPage: React.FC = () => {
           value={senha}
           onChange={(e) => setSenha(e.target.value)}
           required
-          style={{ marginTop: "1rem" }}
+          style={{
+            width: "100%",
+            padding: "1rem",
+            border: "1px solid var(--border)",
+            borderRadius: "4px",
+            backgroundColor: "var(--background-color)",
+            fontSize: "1rem",
+            color: "var(--text)",
+            textAlign: "center",
+            boxSizing: "border-box",
+            marginBottom: "1rem"
+          }}
         />
 
-        <button type="submit">
+        <button
+          type="submit"
+          style={{
+            width: "100%",
+            padding: "1rem",
+            fontWeight: "bold",
+            backgroundColor: "var(--primary)",
+            color: "var(--text)",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer",
+            marginTop: "1rem"
+          }}
+        >
           {modoCadastro ? "Criar conta" : "Entrar"}
         </button>
 
-        <p style={{ marginTop: "1.5rem", textAlign: "center", fontSize: "0.9rem", color: "var(--accent)" }}>
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          style={{
+            width: "100%",
+            padding: "1rem",
+            fontWeight: "bold",
+            backgroundColor: "#DB4437",
+            color: "#fff",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer",
+            marginTop: "1rem"
+          }}
+        >
+          Entrar com Google
+        </button>
+
+        <p style={{
+          textAlign: "center",
+          fontSize: "0.9rem",
+          color: "var(--accent)"
+        }}>
           {modoCadastro ? "Já tem uma conta?" : "Ainda não tem uma conta?"}{" "}
           <button
             type="button"

@@ -12,7 +12,7 @@ const App: React.FC = () => {
       <Routes>
         <Route path="/trips_planner/" element={<AuthPage />} />
         <Route
-          path="/userTrip"
+          path="/trips_planner/user"
           element={
             <PrivateRoute>
                <UserTrips />

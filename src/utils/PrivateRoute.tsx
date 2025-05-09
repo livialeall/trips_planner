@@ -25,7 +25,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
     return <div className="text-center mt-20">Carregando...</div>;
   }
 
-  return logado ? <>{children}</> : <Navigate to="/" />;
+  return logado ? <>{children}</> : <Navigate to="/trips_planner/" />;
 };
 
 export default PrivateRoute;
