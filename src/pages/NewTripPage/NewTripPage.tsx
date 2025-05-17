@@ -50,10 +50,18 @@ export const NewTripPage: React.FC = () => {
     }
   };
 
+  const handleBack = () => {
+    navigate('/');
+  };
+
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Nova Viagem</h1>
-      
+       <div className={styles.header}>
+        <button onClick={handleBack} className={styles.backButton}>
+          &larr; Voltar
+        </button>
+        <h1 className={styles.title}>Nova Viagem</h1>
+      </div>
       <form onSubmit={handleSubmit} className={styles.form}>
         {error && <div className={styles.error}>{error}</div>}
 
@@ -105,7 +113,7 @@ export const NewTripPage: React.FC = () => {
           />
         </div>
 
-        <div className={styles.formGroup}>
+        {/* <div className={styles.formGroup}>
           <label htmlFor="imageUrl">URL da Imagem (opcional)</label>
           <input
             type="url"
@@ -115,7 +123,7 @@ export const NewTripPage: React.FC = () => {
             onChange={handleChange}
             placeholder="https://example.com/image.jpg"
           />
-        </div>
+        </div> */}
 
         <button type="submit" disabled={loading} className={styles.submitButton}>
           {loading ? 'Criando...' : 'Criar Viagem'}

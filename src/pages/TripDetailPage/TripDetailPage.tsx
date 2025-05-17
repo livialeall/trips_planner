@@ -1,173 +1,338 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getDoc, doc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { db } from '../../firebase/config';
-import { Cost, addCostToTrip, shareTrip } from '../../services/tripService';
 import { useAuth } from '../../hooks/useAuth';
 import styles from '../../styles/TripDetailPage.module.css';
+
+interface Cost {
+  id?: string;
+  description: string;
+  value: number;
+  category: string;
+  paidBy: string;
+  date: Date;
+}
+
+interface Contribution {
+  userId: string;
+  amount: number;
+  date: Date;
+  type: 'trip' | 'reserva';
+}
+
+interface TripDetails {
+  id: string;
+  name: string;
+  participants: string[];
+  costs: Cost[];
+  contributions: Contribution[];
+  savingsGoal: number;
+  houseDeposit: number;
+}
 
 export const TripDetailPage: React.FC = () => {
   const { tripId } = useParams();
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-  const [trip, setTrip] = useState<any>(null);
+  const [trip, setTrip] = useState<TripDetails | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [shareEmail, setShareEmail] = useState('');
-
+  const [activeTab, setActiveTab] = useState<'costs' | 'contributions' | 'savings'>('costs');
+  
+  // Form states
   const [newCost, setNewCost] = useState<Omit<Cost, 'id'>>({
     description: '',
     value: 0,
     category: 'Transporte',
-    date: new Date(),
-    paidBy: currentUser?.uid || ''
+    paidBy: currentUser?.uid || '',
+    date: new Date()
+  });
+
+  const [newContribution, setNewContribution] = useState<Omit<Contribution, 'date'>>({
+    userId: currentUser?.uid || '',
+    amount: 0,
+    type: 'trip'
   });
 
   useEffect(() => {
     const fetchTrip = async () => {
+      if (!tripId || !currentUser) return;
+      
       try {
-        if (!tripId) throw new Error('ID da viagem não fornecido');
-        
         const docRef = doc(db, 'trips', tripId);
         const docSnap = await getDoc(docRef);
         
         if (docSnap.exists()) {
-          setTrip({ id: docSnap.id, ...docSnap.data() });
-        } else {
-          throw new Error('Viagem não encontrada');
+          const data = docSnap.data();
+          setTrip({
+            id: docSnap.id,
+            name: data.name,
+            participants: data.participants || [],
+            costs: data.costs?.map((c: any) => ({
+              ...c,
+              date: c.date?.toDate()
+            })) || [],
+            contributions: data.contributions?.map((c: any) => ({
+              ...c,
+              date: c.date?.toDate()
+            })) || [],
+            savingsGoal: data.savingsGoal || 0,
+            houseDeposit: data.houseDeposit || 0
+          });
         }
-      } catch (err) {
-        console.error('Error fetching trip:', err);
-        setError(err instanceof Error ? err.message : 'Erro ao carregar viagem');
+      } catch (error) {
+        console.error("Error fetching trip:", error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchTrip();
-  }, [tripId]);
+  }, [tripId, currentUser]);
 
-  const handleAddCost = async () => {
+  const addCost = async () => {
+    if (!tripId || !currentUser) return;
+    
     try {
-      if (!tripId) throw new Error('ID da viagem não fornecido');
-      await addCostToTrip(tripId, newCost);
-      // Atualizar a lista de custos
-      setTrip(prev => ({
+      const tripRef = doc(db, 'trips', tripId);
+      await updateDoc(tripRef, {
+        costs: arrayUnion({
+          ...newCost,
+          date: new Date()
+        })
+      });
+      
+      // Atualizar estado local
+      setTrip(prev => prev ? {
         ...prev,
-        costs: [...prev.costs, newCost]
-      }));
+        costs: [...prev.costs, { ...newCost, date: new Date() }]
+      } : null);
+      
       // Resetar formulário
       setNewCost({
         description: '',
         value: 0,
         category: 'Transporte',
-        date: new Date(),
-        paidBy: currentUser?.uid || ''
+        paidBy: currentUser.uid,
+        date: new Date()
       });
-    } catch (err) {
-      console.error('Error adding cost:', err);
-      setError(err instanceof Error ? err.message : 'Erro ao adicionar custo');
+    } catch (error) {
+      console.error("Error adding cost:", error);
     }
   };
 
-  const handleShareTrip = async () => {
+  const addContribution = async () => {
+    if (!tripId || !currentUser) return;
+    
     try {
-      if (!tripId) throw new Error('ID da viagem não fornecido');
-      if (!shareEmail) throw new Error('E-mail não fornecido');
-      // Aqui você precisaria buscar o ID do usuário pelo email
-      // Esta é uma implementação simplificada
-      await shareTrip(tripId, shareEmail);
-      alert(`Viagem compartilhada com ${shareEmail}`);
-    } catch (err) {
-      console.error('Error sharing trip:', err);
-      setError(err instanceof Error ? err.message : 'Erro ao compartilhar viagem');
+      const tripRef = doc(db, 'trips', tripId);
+      await updateDoc(tripRef, {
+        contributions: arrayUnion({
+          ...newContribution,
+          date: new Date()
+        })
+      });
+      
+      // Atualizar estado local
+      setTrip(prev => prev ? {
+        ...prev,
+        contributions: [...prev.contributions, { ...newContribution, date: new Date() }]
+      } : null);
+      
+      // Resetar formulário
+      setNewContribution({
+        userId: currentUser.uid,
+        amount: 0,
+        type: 'trip'
+      });
+    } catch (error) {
+      console.error("Error adding contribution:", error);
     }
   };
 
-  const copyShareLink = () => {
-    const shareLink = `${window.location.origin}/trip/${tripId}`;
-    navigator.clipboard.writeText(shareLink);
-    alert('Link copiado para a área de transferência!');
-  };
+  // Cálculos
+  const totalCosts = trip?.costs.reduce((sum, cost) => sum + cost.value, 0) || 0;
+  const totalContributions = trip?.contributions
+    .filter(c => c.type === 'trip')
+    .reduce((sum, contrib) => sum + contrib.amount, 0) || 0;
+  
+  const totalReserva = trip?.contributions
+    .filter(c => c.type === 'reserva')
+    .reduce((sum, contrib) => sum + contrib.amount, 0) || 0;
+
+  const remainingAmount = (trip?.savingsGoal || 0) - totalContributions;
+  const remainingReserva = (trip?.houseDeposit || 0) - totalReserva;
 
   if (loading) return <div>Carregando...</div>;
-  if (error) return <div className={styles.error}>{error}</div>;
   if (!trip) return <div>Viagem não encontrada</div>;
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>{trip.name}</h1>
-      <p className={styles.destination}>{trip.destination}</p>
-      
-      <div className={styles.section}>
-        <h2>Compartilhar Viagem</h2>
-        <div className={styles.shareContainer}>
-          <input
-            type="email"
-            placeholder="E-mail do usuário"
-            value={shareEmail}
-            onChange={(e) => setShareEmail(e.target.value)}
-            className={styles.shareInput}
-          />
-          <button onClick={handleShareTrip} className={styles.shareButton}>
-            Compartilhar
-          </button>
-          <button onClick={copyShareLink} className={styles.linkButton}>
-            Copiar Link
-          </button>
-        </div>
+      <header className={styles.header}>
+        <button onClick={() => navigate(-1)} className={styles.backButton}>
+          &larr; Voltar
+        </button>
+        <h1>{trip.name}</h1>
+      </header>
+
+      <div className={styles.tabs}>
+        <button
+          className={`${styles.tabButton} ${activeTab === 'costs' ? styles.active : ''}`}
+          onClick={() => setActiveTab('costs')}
+        >
+          Custos
+        </button>
+        <button
+          className={`${styles.tabButton} ${activeTab === 'contributions' ? styles.active : ''}`}
+          onClick={() => setActiveTab('contributions')}
+        >
+          Contribuições
+        </button>
+        <button
+          className={`${styles.tabButton} ${activeTab === 'savings' ? styles.active : ''}`}
+          onClick={() => setActiveTab('savings')}
+        >
+          Caixinha
+        </button>
       </div>
 
-      <div className={styles.section}>
-        <h2>Adicionar Custo</h2>
-        <div className={styles.costForm}>
-          <input
-            type="text"
-            placeholder="Descrição"
-            value={newCost.description}
-            onChange={(e) => setNewCost({...newCost, description: e.target.value})}
-          />
-          <input
-            type="number"
-            placeholder="Valor"
-            value={newCost.value}
-            onChange={(e) => setNewCost({...newCost, value: Number(e.target.value)})}
-          />
-          <select
-            value={newCost.category}
-            onChange={(e) => setNewCost({...newCost, category: e.target.value})}
-          >
-            <option value="Transporte">Transporte</option>
-            <option value="Hospedagem">Hospedagem</option>
-            <option value="Alimentação">Alimentação</option>
-            <option value="Entretenimento">Entretenimento</option>
-            <option value="Outros">Outros</option>
-          </select>
-          <button 
-            type="button" 
-            onClick={handleAddCost}
-            className={styles.addButton}
-          >
-            Adicionar Custo
-          </button>
-        </div>
-      </div>
+      {activeTab === 'costs' && (
+        <div className={styles.tabContent}>
+          <h2>Adicionar Custo</h2>
+          <div className={styles.form}>
+            <input
+              type="text"
+              placeholder="Descrição"
+              value={newCost.description}
+              onChange={(e) => setNewCost({...newCost, description: e.target.value})}
+            />
+            <input
+              type="number"
+              placeholder="Valor"
+              value={newCost.value}
+              onChange={(e) => setNewCost({...newCost, value: Number(e.target.value)})}
+            />
+            <select
+              value={newCost.category}
+              onChange={(e) => setNewCost({...newCost, category: e.target.value})}
+            >
+              <option value="Transporte">Transporte</option>
+              <option value="Hospedagem">Hospedagem</option>
+              <option value="Alimentação">Alimentação</option>
+              <option value="Entretenimento">Entretenimento</option>
+              <option value="Outros">Outros</option>
+            </select>
+            <button onClick={addCost}>Adicionar</button>
+          </div>
 
-      <div className={styles.section}>
-        <h2>Custos da Viagem</h2>
-        {trip.costs?.length > 0 ? (
-          <ul className={styles.costsList}>
-            {trip.costs.map((cost: Cost, index: number) => (
-              <li key={index} className={styles.costItem}>
+          <h2>Custos da Viagem</h2>
+          <div className={styles.costsList}>
+            {trip.costs.map((cost, index) => (
+              <div key={index} className={styles.costItem}>
                 <span>{cost.description}</span>
-                <span>R$ {cost.value.toFixed(2)}</span>
                 <span>{cost.category}</span>
-              </li>
+                <span>R$ {cost.value.toFixed(2)}</span>
+              </div>
             ))}
-          </ul>
-        ) : (
-          <p>Nenhum custo registrado ainda.</p>
-        )}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'contributions' && (
+        <div className={styles.tabContent}>
+          <h2>Adicionar Contribuição</h2>
+          <div className={styles.form}>
+            <input
+              type="number"
+              placeholder="Valor"
+              value={newContribution.amount}
+              onChange={(e) => setNewContribution({
+                ...newContribution,
+                amount: Number(e.target.value)
+              })}
+            />
+            <select
+              value={newContribution.type}
+              onChange={(e) => setNewContribution({
+                ...newContribution,
+                type: e.target.value as 'trip' | 'reserva'
+              })}
+            >
+              <option value="trip">Para a viagem</option>
+              <option value="reserva">Para a reserva</option>
+            </select>
+            <button onClick={addContribution}>Adicionar</button>
+          </div>
+
+          <div className={styles.progressContainer}>
+            <h3>Progresso do Valor Total</h3>
+            <div className={styles.progressBar}>
+              <div 
+                className={styles.progressFill}
+                style={{ width: `${(totalContributions / trip.savingsGoal) * 100}%` }}
+              ></div>
+            </div>
+            <p>
+              Arrecadado: R$ {totalContributions.toFixed(2)} / 
+              Meta: R$ {trip.savingsGoal.toFixed(2)} | 
+              Falta: R$ {remainingAmount.toFixed(2)}
+            </p>
+          </div>
+
+          <h2>Histórico de Contribuições</h2>
+          <div className={styles.contributionsList}>
+            {trip.contributions
+              .filter(c => c.type === 'trip')
+              .map((contribution, index) => (
+                <div key={index} className={styles.contributionItem}>
+                  <span>Usuário {contribution.userId}</span>
+                  <span>R$ {contribution.amount.toFixed(2)}</span>
+                  <span>{contribution.date.toLocaleDateString()}</span>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'savings' && (
+        <div className={styles.tabContent}>
+          <h2>Caixinha da Reserva</h2>
+          
+          <div className={styles.progressContainer}>
+            <div className={styles.progressBar}>
+              <div 
+                className={styles.progressFill}
+                style={{ width: `${(totalReserva / trip.houseDeposit) * 100}%` }}
+              ></div>
+            </div>
+            <p>
+              Arrecadado: R$ {totalReserva.toFixed(2)} / 
+              Meta: R$ {trip.houseDeposit.toFixed(2)} | 
+              Falta: R$ {remainingReserva.toFixed(2)}
+            </p>
+          </div>
+
+          <h2>Histórico de Depósitos</h2>
+          <div className={styles.contributionsList}>
+            {trip.contributions
+              .filter(c => c.type === 'reserva')
+              .map((contribution, index) => (
+                <div key={index} className={styles.contributionItem}>
+                  <span>Usuário {contribution.userId}</span>
+                  <span>R$ {contribution.amount.toFixed(2)}</span>
+                  <span>{contribution.date.toLocaleDateString()}</span>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+
+      <div className={styles.summary}>
+        <h3>Resumo Financeiro</h3>
+        <p>Total de Custos: R$ {totalCosts.toFixed(2)}</p>
+        <p>Total Arrecadado: R$ {totalContributions.toFixed(2)}</p>
+        <p>Valor Restante: R$ {remainingAmount.toFixed(2)}</p>
+        <p>Reserva Arrecadada: R$ {totalReserva.toFixed(2)}</p>
       </div>
     </div>
   );

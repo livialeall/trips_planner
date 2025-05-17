@@ -7,7 +7,7 @@ import {
     doc, 
     updateDoc,
     arrayUnion,
-    Timestamp 
+    Timestamp,deleteDoc 
   } from 'firebase/firestore';
   import { db } from '../firebase/config';
   
@@ -64,4 +64,14 @@ import {
     await updateDoc(tripRef, {
       sharedWith: arrayUnion(userIdToShare)
     });
+  };
+
+  export const updateTrip = async (tripId: string, updates: Partial<Trip>) => {
+    const tripRef = doc(db, 'trips', tripId);
+    await updateDoc(tripRef, updates);
+  };
+  
+  export const deleteTrip = async (tripId: string) => {
+    const tripRef = doc(db, 'trips', tripId);
+    await deleteDoc(tripRef);
   };
