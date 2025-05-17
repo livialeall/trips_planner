@@ -1,0 +1,30 @@
+.container {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+.content {
+  position: relative;
+  z-index: 1;
+  background: white;
+  transition: transform 0.2s ease;
+  width: 100%;
+}
+
+.deleteButton {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 100px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 0;
+  transition: opacity 0.2s ease;
+  cursor: pointer;
+}

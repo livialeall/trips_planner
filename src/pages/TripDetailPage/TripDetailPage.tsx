@@ -4,6 +4,7 @@ import { doc, getDoc, updateDoc, arrayUnion, collection, query, where, getDocs }
 import { db } from '../../firebase/config';
 import { useAuth } from '../../hooks/useAuth';
 import styles from '../../styles/TripDetailPage.module.css';
+import { SwipeToDelete } from '../../components/SwipeToDelete/SwipeToDelete';
 
 const FinanceCard = ({ title, value, color }: { title: string; value: string; color: string }) => (
   <div className={styles.financeCard} style={{ borderLeftColor: color }}>
@@ -51,8 +52,10 @@ export const TripDetailPage: React.FC = () => {
 
   const [newContribution, setNewContribution] = useState({
     amount: '',
-    type: 'trip' as 'trip' | 'reserva'
+    type: 'trip' as 'trip' | 'reserva',
+    participantName: '' // Novo campo adicionado
   });
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -145,10 +148,11 @@ export const TripDetailPage: React.FC = () => {
     try {
       await updateDoc(doc(db, 'trips', tripId), {
         contributions: arrayUnion({
-          ...newContribution,
           amount: parseFloat(newContribution.amount),
+          type: newContribution.type,
           userId: currentUser.uid,
           userName: users[currentUser.uid],
+          participantName: newContribution.participantName || undefined, // Opcional
           date: new Date()
         })
       });
@@ -156,20 +160,63 @@ export const TripDetailPage: React.FC = () => {
       setTrip({
         ...trip,
         contributions: [...trip.contributions, {
-          ...newContribution,
           amount: parseFloat(newContribution.amount),
+          type: newContribution.type,
           userId: currentUser.uid,
           userName: users[currentUser.uid],
+          participantName: newContribution.participantName || undefined,
           date: new Date()
         }]
       });
       
-      setNewContribution({ amount: '', type: 'trip' });
+      setNewContribution({ 
+        amount: '', 
+        type: 'trip',
+        participantName: '' // Reseta o campo
+      });
     } catch (error) {
       console.error("Error adding contribution:", error);
     }
   };
-
+  const deleteCost = async (costIndex: number) => {
+    if (!tripId || !trip) return;
+    
+    try {
+      const updatedCosts = [...trip.costs];
+      updatedCosts.splice(costIndex, 1);
+      
+      await updateDoc(doc(db, 'trips', tripId), {
+        costs: updatedCosts
+      });
+      
+      setTrip({
+        ...trip,
+        costs: updatedCosts
+      });
+    } catch (error) {
+      console.error("Error deleting cost:", error);
+    }
+  };
+  
+  const deleteContribution = async (contributionIndex: number) => {
+    if (!tripId || !trip) return;
+    
+    try {
+      const updatedContributions = [...trip.contributions];
+      updatedContributions.splice(contributionIndex, 1);
+      
+      await updateDoc(doc(db, 'trips', tripId), {
+        contributions: updatedContributions
+      });
+      
+      setTrip({
+        ...trip,
+        contributions: updatedContributions
+      });
+    } catch (error) {
+      console.error("Error deleting contribution:", error);
+    }
+  };
   // Cálculos
   const totalCosts = trip?.costs.reduce((sum: number, cost: any) => sum + cost.value, 0) || 0;
   const totalTripContributions = trip?.contributions
@@ -375,93 +422,121 @@ export const TripDetailPage: React.FC = () => {
                 <p className={styles.emptyMessage}>Nenhum gasto registrado ainda</p>
               ) : (
                 <ul className={styles.list}>
-                  {trip.costs.slice().reverse().map((cost: any, index: number) => (
-                    <li key={index} className={styles.listItem}>
-                      <div className={styles.itemIcon}>
+            {trip.costs.slice().reverse().map((cost: any, index: number) => (
+                <SwipeToDelete 
+                    key={index} 
+                    onDelete={() => deleteCost(trip.costs.length - 1 - index)}
+                >
+                    <li className={styles.listItem}>
+                    <div className={styles.itemIcon}>
                         {getCategoryIcon(cost.category)}
-                      </div>
-                      <div className={styles.itemDetails}>
+                    </div>
+                    <div className={styles.itemDetails}>
                         <span className={styles.itemTitle}>{cost.description}</span>
                         <span className={styles.itemSubtitle}>
-                          {cost.category} • {cost.date.toLocaleDateString('pt-BR')}
+                        {cost.category} • {cost.date.toLocaleDateString('pt-BR')}
                         </span>
-                      </div>
-                      <div className={styles.itemAmount}>
+                    </div>
+                    <div className={styles.itemAmount}>
                         - R$ {cost.value.toFixed(2)}
-                      </div>
+                    </div>
                     </li>
-                  ))}
+                </SwipeToDelete>
+                ))}
                 </ul>
               )}
             </div>
           </>
         )}
 
-        {activeView === 'contributions' && (
-          <>
-            <div className={styles.addForm}>
-              <h2 className={styles.sectionTitle}>Adicionar Contribuição</h2>
-              <div className={styles.formRow}>
-                <input
-                  type="number"
-                  placeholder="Valor"
-                  value={newContribution.amount}
-                  onChange={(e) => setNewContribution({
-                    ...newContribution,
-                    amount: e.target.value
-                  })}
-                  className={styles.input}
-                />
-                <select
-                  value={newContribution.type}
-                  onChange={(e) => setNewContribution({
-                    ...newContribution,
-                    type: e.target.value as 'trip' | 'reserva'
-                  })}
-                  className={styles.select}
-                >
-                  <option value="trip">Para a viagem</option>
-                  <option value="reserva">Para a reserva</option>
-                </select>
-              </div>
-              <button 
-                onClick={addContribution} 
-                className={styles.addButton}
-                disabled={!newContribution.amount}
-              >
-                Adicionar como {users[currentUser]?.uid || 'Usuário'}
-              </button>
-            </div>
+{activeView === 'contributions' && (
+    <>
+      <div className={styles.addForm}>
+        <h2 className={styles.sectionTitle}>Adicionar Contribuição</h2>
+        <div className={styles.formRow}>
+          <div className={styles.inputGroup}>
+            <input
+              type="number"
+              placeholder="Valor"
+              value={newContribution.amount}
+              onChange={(e) => setNewContribution({
+                ...newContribution,
+                amount: e.target.value
+              })}
+              className={styles.input}
+            />
+          </div>
+          <div className={styles.selectGroup}>
+            <select
+              value={newContribution.type}
+              onChange={(e) => setNewContribution({
+                ...newContribution,
+                type: e.target.value as 'trip' | 'reserva'
+              })}
+              className={styles.select}
+            >
+              <option value="trip">Para a viagem</option>
+              <option value="reserva">Para a reserva</option>
+            </select>
+          </div>
+        </div>
+        <div className={styles.formRow}>
+          <div className={styles.inputGroup}>
+            <input
+              type="text"
+              placeholder="Nome do participante"
+              value={newContribution.participantName}
+              onChange={(e) => setNewContribution({
+                ...newContribution,
+                participantName: e.target.value
+              })}
+              className={styles.input}
+            />
+          </div>
+          <button 
+            onClick={addContribution} 
+            className={styles.addButton}
+            disabled={!newContribution.amount}
+          >
+            Adicionar
+          </button>
+        </div>
+      </div>
 
-            <div className={styles.listSection}>
-              <h2 className={styles.sectionTitle}>Últimas Contribuições</h2>
-              {trip.contributions.length === 0 ? (
-                <p className={styles.emptyMessage}>Nenhuma contribuição registrada</p>
-              ) : (
-                <ul className={styles.list}>
-                  {trip.contributions.slice().reverse().map((contribution: any, index: number) => (
-                    <li key={index} className={styles.listItem}>
-                      <div className={styles.itemIcon}>
-                        {contribution.type === 'trip' ? '✈️' : '🏠'}
-                      </div>
-                      <div className={styles.itemDetails}>
-                        <span className={styles.itemTitle}>
-                          {contribution.userName || 'Usuário'}
-                        </span>
-                        <span className={styles.itemSubtitle}>
-                          {contribution.type === 'trip' ? 'Para viagem' : 'Para reserva'} • {contribution.date.toLocaleDateString('pt-BR')}
-                        </span>
-                      </div>
-                      <div className={styles.itemAmount}>
-                        + R$ {contribution.amount.toFixed(2)}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </>
+      <div className={styles.listSection}>
+        <h2 className={styles.sectionTitle}>Últimas Contribuições</h2>
+        {trip.contributions.length === 0 ? (
+          <p className={styles.emptyMessage}>Nenhuma contribuição registrada</p>
+        ) : (
+          <ul className={styles.list}>
+                        {trip.contributions.slice().reverse().map((contribution: any, index: number) => (
+            <SwipeToDelete 
+                key={index} 
+                onDelete={() => deleteContribution(trip.contributions.length - 1 - index)}
+            >
+                <li className={styles.listItem}>
+                <div className={styles.itemIcon}>
+                    {contribution.type === 'trip' ? '✈️' : '🏠'}
+                </div>
+                <div className={styles.itemDetails}>
+                    <span className={styles.itemTitle}>
+                    {contribution.participantName || contribution.userName || 'Usuário'}
+                    </span>
+                    <span className={styles.itemSubtitle}>
+                    {contribution.type === 'trip' ? 'Para viagem' : 'Para reserva'} • {contribution.date.toLocaleDateString('pt-BR')}
+                    </span>
+                </div>
+                <div className={styles.itemAmount}>
+                    + R$ {contribution.amount.toFixed(2)}
+                </div>
+                </li>
+            </SwipeToDelete>
+            ))}
+          </ul>
         )}
+      </div>
+    </>
+  )}
       </main>
     </div>
   );
