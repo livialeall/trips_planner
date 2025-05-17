@@ -1,0 +1,67 @@
+.card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+  margin-bottom: 1.5rem;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+}
+
+.imageContainer {
+  position: relative;
+  height: 0;
+  padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  overflow: hidden;
+}
+
+.image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.statusBadge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 4px 8px;
+  border-radius: 20px;
+  color: white;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.content {
+  padding: 1rem;
+}
+
+.destination {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  color: #1f2937;
+}
+
+.dates {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+@media (min-width: 768px) {
+  .card {
+    margin-bottom: 2rem;
+  }
+  
+  .destination {
+    font-size: 1.25rem;
+  }
+}
