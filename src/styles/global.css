@@ -1,0 +1,194 @@
+:root {
+  --primary: #4361ee;
+  --primary-light: #4895ef;
+  --secondary: #3f37c9;
+  --accent: #4cc9f0;
+  --success: #4ad66d;
+  --warning: #f8961e;
+  --error: #f94144;
+  --dark: #212529;
+  --gray: #6c757d;
+  --light: #f8f9fa;
+  --white: #ffffff;
+  
+  --border-radius: 12px;
+  --box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  --transition: all 0.3s ease;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--light);
+  color: var(--dark);
+  line-height: 1.5;
+}
+
+/* Layout principal */
+.app-container {
+  max-width: 100%;
+  min-height: 100vh;
+  padding: 0;
+  margin: 0;
+}
+
+/* Componentes comuns */
+.card {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  padding: 1.2rem;
+  margin-bottom: 1rem;
+  transition: var(--transition);
+}
+
+.button {
+  border: none;
+  border-radius: 50px;
+  padding: 12px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.primary-button {
+  background-color: var(--primary);
+  color: white;
+}
+
+.primary-button:hover {
+  background-color: var(--secondary);
+  transform: translateY(-2px);
+}
+
+/* Media queries para responsividade */
+@media (min-width: 768px) {
+  .app-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+}
+
+.home-container {
+  padding: 1rem;
+  max-width: 100%;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0;
+  margin-bottom: 1.5rem;
+}
+
+.app-header h1 {
+  flex: 1;
+  text-align: center;
+  font-size: 1.5rem;
+}
+
+.menu-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.trips-container {
+  display: grid;
+  gap: 1rem;
+}
+
+.floating-action-button {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+}
+
+@media (min-width: 768px) {
+  .trips-container {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+  
+  .home-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+}
+
+.member-list {
+  margin-top: 1.5rem;
+}
+
+.member-list-title {
+  font-size: 1.1rem;
+  color: var(--gray);
+  margin-bottom: 1rem;
+  padding-left: 0.5rem;
+}
+
+.member-scroll-container {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.member-item {
+  display: flex;
+  align-items: center;
+  padding: 0.8rem;
+  background: var(--white);
+  border-radius: var(--border-radius);
+  margin-bottom: 0.5rem;
+}
+
+.member-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+  color: white;
+  font-weight: bold;
+  overflow: hidden;
+}
+
+.member-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.member-info {
+  flex: 1;
+}
+
+.member-info h4 {
+  margin-bottom: 0.2rem;
+}
+
+.member-info p {
+  font-size: 0.8rem;
+  color: var(--gray);
+}
+
+.remove-member-button {
+  background: none;
+  border: none;
+  color: var(--error);
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0.5rem;
+}
