@@ -20,14 +20,6 @@ interface TripCardProps {
     return (
       <div className={styles.card}
       onClick={() => navigate(`/trip/${trip.id}`)}>
-        <div className={styles.imageContainer}>
-          <img 
-            src={trip.imageUrl || 'https://source.unsplash.com/random/300x200/?travel'} 
-            alt={trip.destination}
-            className={styles.image}
-          />
-        </div>
-        
         <div className={styles.content}>
           <h3 className={styles.destination}>{trip.destination}</h3>
           <div className={styles.dates}>

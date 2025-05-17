@@ -33,6 +33,14 @@ import {
     sharedWith: string[]; // Array de IDs de usuários com acesso
   }
   
+  export interface Contribution {
+    userId: string;
+    userName: string;
+    amount: number;
+    date: Date;
+    type: 'trip' | 'reserva';
+  }
+
   export const getUserTrips = async (userId: string): Promise<Trip[]> => {
     const q = query(
       collection(db, 'trips'),
@@ -74,4 +82,17 @@ import {
   export const deleteTrip = async (tripId: string) => {
     const tripRef = doc(db, 'trips', tripId);
     await deleteDoc(tripRef);
+  };
+
+  export const addContribution = async (
+    tripId: string, 
+    contribution: Omit<Contribution, 'date'> & { userId: string; userName: string }
+  ) => {
+    const tripRef = doc(db, 'trips', tripId);
+    await updateDoc(tripRef, {
+      contributions: arrayUnion({
+        ...contribution,
+        date: new Date()
+      })
+    });
   };
