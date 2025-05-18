@@ -7,21 +7,13 @@ import styles from '../../styles/TripDetailPage.module.css';
 import { SwipeToDelete } from '../../components/SwipeToDelete/SwipeToDelete';
 
 const FinanceCard = ({ title, value, color }: { title: string; value: string; color: string }) => (
-  <div className={styles.financeCard} style={{ borderLeftColor: color }}>
-    <span className={styles.cardTitle}>{title}</span>
-    <span className={styles.cardValue}>{value}</span>
-  </div>
-);
-
-const CircularProgress = ({ percentage, color }: { percentage: number; color: string }) => (
-  <div className={styles.circleProgress} style={{ background: `
-    conic-gradient(${color} ${percentage}%, #f0f0f0 ${percentage}% 100%)
-  ` }}>
-    <div className={styles.circleInner}>
-      <span>{Math.round(percentage)}%</span>
+    <div className={styles.financeCard} style={{ borderLeft: `4px solid ${color}` }}>
+      <div className={styles.cardContent}>
+        <span className={styles.cardTitle}>{title}</span>
+        <span className={styles.cardValue}>{value}</span>
+      </div>
     </div>
-  </div>
-);
+  );
 
 const getCategoryIcon = (category: string) => {
   switch(category) {
@@ -113,7 +105,8 @@ export const TripDetailPage: React.FC = () => {
     fetchData();
   }, [tripId, currentUser]);
 
-  const addCost = async () => {
+  const addCost = async (e: React.FormEvent) => {
+    e.preventDefault(); // Adicione esta linha
     if (!tripId || !currentUser || !newCost.description || !newCost.value) return;
     
     try {
@@ -142,16 +135,17 @@ export const TripDetailPage: React.FC = () => {
     }
   };
 
-  const addContribution = async () => {
-    if (!tripId || !currentUser || !users[currentUser.uid] || !newContribution.amount) return;
-    
+  const addContribution = async (e: React.FormEvent) => {
+
+    if (!tripId || !currentUser || !newContribution.amount) return;
+    e.preventDefault();
+
     try {
       await updateDoc(doc(db, 'trips', tripId), {
         contributions: arrayUnion({
           amount: parseFloat(newContribution.amount),
           type: newContribution.type,
           userId: currentUser.uid,
-          userName: users[currentUser.uid],
           participantName: newContribution.participantName || undefined, // Opcional
           date: new Date()
         })
@@ -228,8 +222,27 @@ export const TripDetailPage: React.FC = () => {
     .reduce((sum: number, c: any) => sum + c.amount, 0) || 0;
 
   const availableBalance = totalTripContributions - totalCosts;
-  const tripProgress = trip?.savingsGoal ? (totalTripContributions / trip.savingsGoal) * 100 : 0;
-  const depositProgress = trip?.houseDeposit ? (totalDepositContributions / trip.houseDeposit) * 100 : 0;
+  const getCategoryName = (category: string) => {
+    const names: Record<string, string> = {
+      transport: 'Transporte',
+      lodging: 'Hospedagem',
+      food: 'Alimentação',
+      activities: 'Atividades',
+      other: 'Outros'
+    };
+    return names[category] || category;
+  };
+  
+  const getCategoryColor = (category: string) => {
+    const colors: Record<string, string> = {
+      transport: '#3b82f6', // Azul
+      lodging: '#8b5cf6', // Roxo
+      food: '#10b981', // Verde
+      activities: '#f59e0b', // Amarelo
+      other: '#64748b' // Cinza
+    };
+    return colors[category] || '#94a3b8';
+  };
 
   if (loading) return <div className={styles.loading}>Carregando...</div>;
   if (!trip) return <div className={styles.error}>Viagem não encontrada</div>;
@@ -264,7 +277,6 @@ export const TripDetailPage: React.FC = () => {
               ))}
             </ul>
             
-            {/* Botão para nova viagem adicionado aqui */}
             <button 
               onClick={() => {
                 navigate('/new-trip');
@@ -330,41 +342,44 @@ export const TripDetailPage: React.FC = () => {
               />
             </div>
 
-            <div className={styles.progressSection}>
-              <h2 className={styles.sectionTitle}>Progresso da Viagem</h2>
-              <div className={styles.progressContainer}>
-                <CircularProgress 
-                  percentage={tripProgress} 
-                  color="#7c3aed" 
-                />
-                <div className={styles.progressDetails}>
-                  <span className={styles.progressText}>
-                    <strong>Meta:</strong> R$ {trip.savingsGoal?.toFixed(2) || '0.00'}
-                  </span>
-                  <span className={styles.progressText}>
-                    <strong>Faltam:</strong> R$ {Math.max(0, (trip.savingsGoal - totalTripContributions)).toFixed(2)}
-                  </span>
+            <div className={styles.spendingCategories}>
+      <h3 className={styles.sectionSubtitle}>Gastos por Categoria</h3>
+      
+        <div className={styles.categoryGrid}>
+            {Object.entries(
+            trip.costs.reduce((acc: Record<string, number>, cost: any) => {
+                const category = cost.category || 'other';
+                acc[category] = (acc[category] || 0) + cost.value;
+                return acc;
+            }, {})
+            )
+            .sort((a, b) => b[1] - a[1]) // Ordena do maior para o menor
+            .map(([category, amount]) => (
+            <div key={category} className={styles.categoryCard}>
+                <div className={styles.categoryHeader}>
+                <span className={styles.categoryIcon}>
+                    {getCategoryIcon(category)}
+                </span>
+                <span className={styles.categoryName}>
+                    {getCategoryName(category)}
+                </span>
                 </div>
-              </div>
-            </div>
-
-            <div className={styles.progressSection}>
-              <h2 className={styles.sectionTitle}>Caixinha da Reserva</h2>
-              <div className={styles.progressContainer}>
-                <CircularProgress 
-                  percentage={depositProgress} 
-                  color="#3b82f6" 
-                />
-                <div className={styles.progressDetails}>
-                  <span className={styles.progressText}>
-                    <strong>Meta:</strong> R$ {trip.houseDeposit?.toFixed(2) || '0.00'}
-                  </span>
-                  <span className={styles.progressText}>
-                    <strong>Faltam:</strong> R$ {Math.max(0, (trip.houseDeposit - totalDepositContributions)).toFixed(2)}
-                  </span>
+                <div className={styles.categoryAmount}>
+                R$ {amount.toFixed(2)}
                 </div>
-              </div>
+                <div className={styles.categoryProgress}>
+                <div 
+                    className={styles.progressBar}
+                    style={{
+                    width: `${(amount / totalCosts) * 100}%`,
+                    backgroundColor: getCategoryColor(category)
+                    }}
+                ></div>
+                </div>
             </div>
+            ))}
+        </div>
+        </div>
           </>
         )}
 
@@ -494,7 +509,7 @@ export const TripDetailPage: React.FC = () => {
             />
           </div>
           <button 
-            onClick={addContribution} 
+            onClick={addContribution}
             className={styles.addButton}
             disabled={!newContribution.amount}
           >

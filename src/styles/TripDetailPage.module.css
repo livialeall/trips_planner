@@ -163,14 +163,19 @@
     flex-direction: column;
   }
   
+  .cardContent {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
   .cardTitle {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     color: #64748b;
-    margin-bottom: 0.5rem;
   }
   
   .cardValue {
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     font-weight: 600;
     color: #1e293b;
   }
@@ -386,3 +391,103 @@
       width: 85%;
     }
   }
+
+  /* Novos estilos para categorias */
+.spendingCategories {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.sectionSubtitle {
+  font-size: 1rem;
+  color: #475569;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.categoryGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+.categoryCard {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  background-color: #f8fafc;
+}
+
+.categoryHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.categoryIcon {
+  font-size: 1.25rem;
+  margin-right: 0.75rem;
+}
+
+.categoryName {
+  font-weight: 500;
+  color: #1e293b;
+  flex-grow: 1;
+}
+
+.categoryAmount {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.5rem;
+}
+
+.categoryProgress {
+  height: 6px;
+  background-color: #e2e8f0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progressBar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+/* Melhorias nos cards existentes */
+.cardsRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.financeCard {
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Animações para interação */
+.categoryCard {
+  transition: transform 0.2s ease;
+}
+
+.categoryCard:hover {
+  transform: translateY(-2px);
+}
+
+/* Responsividade */
+@media (max-width: 360px) {
+  .cardsRow {
+    grid-template-columns: 1fr;
+  }
+  
+  .categoryGrid {
+    grid-template-columns: 1fr;
+  }
+}
