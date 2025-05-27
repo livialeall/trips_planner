@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import './index.css';
-import { sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink } from 'firebase/auth';
+import { sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, User } from 'firebase/auth';
 import { auth } from './firebase';
 
 const actionCodeSettings = {
@@ -9,7 +9,7 @@ const actionCodeSettings = {
 };
 
 type LoginProps = {
-  onAuthenticated: () => void;
+  onAuthenticated: (user: User | null) => void;
 };
 
 export default function Login({ onAuthenticated }: LoginProps) {
@@ -31,11 +31,13 @@ export default function Login({ onAuthenticated }: LoginProps) {
   // Verifica se o link foi clicado e faz login
   if (isSignInWithEmailLink(auth, window.location.href)) {
     const emailStored = window.localStorage.getItem('emailForSignIn');
+    window.localStorage.removeItem('emailForSignIn');
     if (emailStored) {
+    const result = signInWithEmailLink(auth, emailStored, window.location.href);
       signInWithEmailLink(auth, emailStored, window.location.href)
-        .then(() => {
+        .then(async () => {
           window.localStorage.removeItem('emailForSignIn');
-          onAuthenticated();
+          onAuthenticated((await result).user);
         })
         .catch((err) => {
           console.error('Erro ao autenticar com link:', err);
