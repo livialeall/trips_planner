@@ -106,8 +106,9 @@ export const TripDetailPage: React.FC = () => {
   }, [tripId, currentUser]);
 
   const addCost = async (e: React.FormEvent) => {
-    e.preventDefault(); // Adicione esta linha
     if (!tripId || !currentUser || !newCost.description || !newCost.value) return;
+
+    e.preventDefault(); // Adicione esta linha
     
     try {
       await updateDoc(doc(db, 'trips', tripId), {
@@ -414,11 +415,11 @@ export const TripDetailPage: React.FC = () => {
             onChange={(e) => setNewCost({...newCost, category: e.target.value})}
             className={styles.select}
           >
-            <option value="Transporte">Transporte</option>
-            <option value="Hospedagem">Hospedagem</option>
-            <option value="Alimentação">Alimentação</option>
-            <option value="Atividades">Atividades</option>
-            <option value="Outros">Outros</option>
+            <option value="transport">Transporte</option>
+            <option value="lodging">Hospedagem</option>
+            <option value="food">Alimentação</option>
+            <option value="activities">Atividades</option>
+            <option value="other">Outros</option>
           </select>
         </div>
         <button 
