@@ -4,6 +4,7 @@ import ProgressBar from './Components/ProgressBar';
 import { db } from './firebase'; // import do firebase configurado
 import { collection, doc, setDoc,getDoc, getDocs } from 'firebase/firestore';
 import { ToastContainer, toast } from 'react-toastify';
+import MonthlyBarChart from './MonthlyBarChart';
 import 'react-toastify/dist/ReactToastify.css';
 
 const people = ['Lívia', 'Renê', 'Sálvia', 'Matheus', 'Alexandre', 'Thais', 'Guilherme', 'Mariana'];
@@ -343,9 +344,11 @@ function TelaPrincipal() {
           <CostSummary onEstimatedCostChange={setEstimatedCost} onCostsChange={setCosts} initialCosts={costs}/>
           <h3>Progresso da Arrecadação</h3>
           <ProgressBar totalRaised={totalContributions} tripTotal={estimatedCost} />
+          
+          <h3>Evolução Patrimoninal</h3>
+        <MonthlyBarChart contributions={contributions} />
           <Contributions onTotalContributionsChange={setTotalContributions} onContributionsChange={setContributions} initialContributions={contributions}/>
         </div>
-
         {/* Botão para salvar */}
           <button onClick={handleSaveFirebase}>
             Salvar
