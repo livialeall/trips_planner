@@ -2,9 +2,7 @@ import { useEffect, useState } from 'react';
 import './index.css';
 import ProgressBar from './Components/ProgressBar';
 import { db } from './firebase'; // import do firebase configurado
-import { collection, doc, setDoc, getDoc, getDocs } from 'firebase/firestore';
-import { ToastContainer, toast } from 'react-toastify';
-import MonthlyBarChart from './MonthlyBarChart';
+import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
 import 'react-toastify/dist/ReactToastify.css';
 
 const people = ['Lívia', 'Renê', 'Sálvia', 'Matheus', 'Alexandre', 'Thais', 'Guilherme', 'Mariana'];
