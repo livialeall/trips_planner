@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import './index.css';
 import ProgressBar from './Components/ProgressBar';
 import { db } from './firebase'; // import do firebase configurado
-import { collection, doc, setDoc,getDoc, getDocs } from 'firebase/firestore';
+import { collection, doc, setDoc, getDoc, getDocs } from 'firebase/firestore';
 import { ToastContainer, toast } from 'react-toastify';
 import MonthlyBarChart from './MonthlyBarChart';
 import 'react-toastify/dist/ReactToastify.css';
@@ -79,8 +79,8 @@ function CostSummary({ onEstimatedCostChange, onCostsChange, initialCosts }: { o
   return (
     <section>
       <hgroup>
-      <h2>Estimativa de Custos da Viagem</h2>
-      <h3>Detalhamento por Categoria</h3>
+        <h2>Estimativa de Custos da Viagem</h2>
+        <h3>Detalhamento por Categoria</h3>
       </hgroup> 
       <table>
         <thead>
@@ -122,15 +122,14 @@ function CostSummary({ onEstimatedCostChange, onCostsChange, initialCosts }: { o
             <th>R$ {totalCost.toFixed(2)}</th>
           </tr>
           <tr style={{ fontWeight: 'bold', backgroundColor: '#005a79' }}>
-          <th>Total unitário</th>
-          <th>R$ {(totalCost / people.length).toFixed(2)}</th>
-        </tr>
+            <th>Total unitário</th>
+            <th>R$ {(totalCost / people.length).toFixed(2)}</th>
+          </tr>
         </tbody>
       </table>
     </section>
   );
 }
-
 
 function MonthlyContribution({
   month,
@@ -224,8 +223,6 @@ function MonthlyContribution({
   );
 }
 
-
-
 function Contributions({ onTotalContributionsChange, onContributionsChange, initialContributions }: { onTotalContributionsChange: (total: number) => void, onContributionsChange: (data: any) => void, initialContributions: any }) {
   const [monthlyData, setMonthlyData] = useState<AllContributions>({});
 
@@ -254,10 +251,8 @@ function Contributions({ onTotalContributionsChange, onContributionsChange, init
   return (
     <section>
       <hgroup>
-      <hgroup>
         <h2>Contribuições Mensais</h2>
         <h3>Distribuída por viajante</h3>
-      </hgroup>
       </hgroup>
       <div className="contributions-scroll">
        {months.map((month) => (
@@ -275,9 +270,28 @@ function Contributions({ onTotalContributionsChange, onContributionsChange, init
 
 function TelaPrincipal() {
   const [estimatedCost, setEstimatedCost] = useState(0);
-  const [totalContributions, setTotalContributions] = useState(0);
   const [costs, setCosts] = useState({});
-  const [contributions, setContributions] = useState({});
+  const [contributions, setContributions] = useState<AllContributions>({});
+  const [totalContributions, setTotalContributions] = useState(0);
+  const [totalCaixinha, setTotalCaixinha] = useState(0);
+  const [totalCasa, setTotalCasa] = useState(0);
+
+  const calculateTotals = (allContributions: AllContributions) => {
+    let caixinhaSum = 0;
+    let casaSum = 0;
+
+    Object.values(allContributions).forEach(month => {
+      Object.values(month).forEach(personContrib => {
+        caixinhaSum += personContrib.caixinha ?? 0;
+        casaSum += personContrib.casa ?? 0;
+      });
+    });
+
+    setTotalCaixinha(caixinhaSum);
+    setTotalCasa(casaSum);
+    setTotalContributions(caixinhaSum + casaSum);
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -285,48 +299,42 @@ function TelaPrincipal() {
         if (costsDoc.exists()) {
           const fetchedCosts = costsDoc.data();
           setCosts(fetchedCosts);
-  
+
           const totalFetchedCost = (fetchedCosts.transportation || 0) + (fetchedCosts.food || 0) + (fetchedCosts.accommodation || 0);
           setEstimatedCost(totalFetchedCost);
         }
-  
+
         const monthsSnapshot = await getDocs(collection(db, "tripData", "contributions", "months"));
         const contributionsData: any = {};
         monthsSnapshot.forEach((docSnap) => {
           contributionsData[docSnap.id] = docSnap.data();
         });
+
         setContributions(contributionsData);
-  
-        const total = Object.values(contributionsData).reduce((acc, month: any) => {
-          const monthTotal = Object.values(month).reduce((sum: any, person: any) => sum + person.caixinha + person.casa, 0);
-          return (acc as number) + (monthTotal as number);
-        }, 0);
-        setTotalContributions((total as number));
-  
+        calculateTotals(contributionsData);
       } catch (error) {
         console.error("Erro ao buscar dados do Firebase:", error);
       }
     };
-  
+
     fetchData();
   }, []);
 
-  const handleSaveFirebase = async () => {
-    try {
-      // Salvar os custos
-      await setDoc(doc(db, "tripData", "costs"), costs);
+  // Atualiza totais sempre que contributions muda (ex: usuário edita)
+  useEffect(() => {
+    calculateTotals(contributions);
+  }, [contributions]);
 
-      // Salvar as contribuições
-      const monthsCollection = collection(db, "tripData", "contributions", "months");
-      for (const [month, data] of Object.entries(contributions)) {
-        await setDoc(doc(monthsCollection, month), data);
-      }
+  const handleCostsChange = (updatedCosts: any) => {
+    setCosts(updatedCosts);
+  };
 
-      toast.success("Dados salvos com sucesso! 🎯");
-    } catch (error) {
-      console.error("Erro ao salvar no Firebase:", error);
-      toast.error("Algo deu errado ao salvar. Tente novamente.");
-    }
+  const handleEstimatedCostChange = (totalCost: number) => {
+    setEstimatedCost(totalCost);
+  };
+
+  const handleContributionsChange = (updatedContributions: AllContributions) => {
+    setContributions(updatedContributions);
   };
 
   return (
@@ -340,24 +348,40 @@ function TelaPrincipal() {
 
       <main>
         <CountdownBox />
-        <div className="grid">
-          <CostSummary onEstimatedCostChange={setEstimatedCost} onCostsChange={setCosts} initialCosts={costs}/>
-          <h3>Progresso da Arrecadação</h3>
-          <ProgressBar totalRaised={totalContributions} tripTotal={estimatedCost} />
-          
-          <h3>Evolução Patrimoninal</h3>
-        <MonthlyBarChart contributions={contributions} />
-          <Contributions onTotalContributionsChange={setTotalContributions} onContributionsChange={setContributions} initialContributions={contributions}/>
-        </div>
-        {/* Botão para salvar */}
-          <button onClick={handleSaveFirebase}>
-            Salvar
-          </button>
+        <CostSummary 
+          initialCosts={costs} 
+          onEstimatedCostChange={handleEstimatedCostChange} 
+          onCostsChange={handleCostsChange} 
+        />
+
+        <section className="highlight-box">
+          <h3>Totais Arrecadados</h3>
+          <div className="totals-display">
+            <div className="total-card caixinha">
+              <span>Caixinha</span>
+              <strong>R$ {totalCaixinha.toFixed(2)}</strong>
+            </div>
+            <div className="total-card casa">
+              <span>Contribuição</span>
+              <strong>R$ {totalCasa.toFixed(2)}</strong>
+            </div>
+          </div>
+        </section>
+
+        <section className="highlight-box">
+          <h3>Progresso de Arrecadação</h3>
+          <ProgressBar
+            totalRaised={totalContributions}
+            tripTotal={estimatedCost}
+          />
+        </section>
+
+        <Contributions
+          initialContributions={contributions}
+          onTotalContributionsChange={setTotalContributions}
+          onContributionsChange={handleContributionsChange}
+        />
       </main>
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
-      <footer>
-        <small>Powered by <div>&lt;LEAL&gt;</div></small>
-      </footer>
     </div>
   );
 }

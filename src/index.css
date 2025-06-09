@@ -227,3 +227,43 @@ button{ margin-top:20px; padding: 10px; font-weight: 'bold'; background-color: v
 .login-container button:hover {
   background-color: #005fa3;
 }
+
+.highlight-box {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: #1e2a36;
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  text-align: center;
+  color: #fff;
+}
+
+.totals-display {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 1rem;
+  gap: 1rem;
+}
+
+.total-card {
+  flex: 1;
+  background-color: #121d26;
+  padding: 1rem;
+  border-radius: 10px;
+  font-size: 1.2rem;
+}
+
+.total-card span {
+  display: block;
+  color: #a0b0c0;
+  margin-bottom: 0.5rem;
+}
+
+.total-card strong {
+  font-size: 1.5rem;
+  color: #00ffb3;
+}
+
+.total-card.casa strong {
+  color: #82b1ff;
+}
