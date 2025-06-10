@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import './index.css';
 import ProgressBar from './Components/ProgressBar';
 import { db } from './firebase'; // import do firebase configurado
-import { collection, doc, getDoc, getDocs } from 'firebase/firestore';
+import { collection, doc, getDoc,setDoc, getDocs } from 'firebase/firestore';
 import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer, toast } from 'react-toastify';
 
 const people = ['Lívia', 'Renê', 'Sálvia', 'Matheus', 'Alexandre', 'Thais', 'Guilherme', 'Mariana'];
 const months = [
@@ -23,6 +24,33 @@ type MonthContributions = {
 type AllContributions = {
   [month: string]: MonthContributions;
 };
+function CaixinhaPorPessoa({ contributions }: { contributions: AllContributions }) {
+  const totalPorPessoa: { [person: string]: number } = {};
+
+  people.forEach((person: string | number) => {
+    totalPorPessoa[person] = 0;
+  });
+
+  Object.values(contributions).forEach((month) => {
+    Object.entries(month).forEach(([person, contrib]) => {
+      totalPorPessoa[person] += contrib.caixinha ?? 0;
+    });
+  });
+
+  return (
+    <section className="highlight-box">
+      <h3>Caixinha por Participante</h3>
+      <div className="totals-display" style={{ flexWrap: 'wrap' }}>
+        {people.map((person) => (
+          <div key={person} className="total-card caixinha" style={{ minWidth: 150, margin: '0.5rem' }}>
+            <span>{person}</span>
+            <strong>R$ {totalPorPessoa[person].toFixed(2)}</strong>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 function CountdownBox() {
   const [daysLeft, setDaysLeft] = useState('Calculando...');
@@ -334,6 +362,23 @@ function TelaPrincipal() {
   const handleContributionsChange = (updatedContributions: AllContributions) => {
     setContributions(updatedContributions);
   };
+  const handleSaveFirebase = async () => {
+      try {
+        // Salvar os custos
+        await setDoc(doc(db, "tripData", "costs"), costs);
+
+        // Salvar as contribuições
+        const monthsCollection = collection(db, "tripData", "contributions", "months");
+        for (const [month, data] of Object.entries(contributions)) {
+          await setDoc(doc(monthsCollection, month), data);
+        }
+
+        toast.success("Dados salvos com sucesso! 🎯");
+      } catch (error) {
+        console.error("Erro ao salvar no Firebase:", error);
+        toast.error("Algo deu errado ao salvar. Tente novamente.");
+      }
+    };
 
   return (
     <div className="container">
@@ -379,7 +424,14 @@ function TelaPrincipal() {
           onTotalContributionsChange={setTotalContributions}
           onContributionsChange={handleContributionsChange}
         />
+        <button onClick={handleSaveFirebase}>
+            Salvar
+          </button>
       </main>
+       <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
+      <footer>
+        <small>Powered by <div>&lt;LEAL&gt;</div></small>
+      </footer>
     </div>
   );
 }
