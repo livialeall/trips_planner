@@ -24,33 +24,6 @@ type MonthContributions = {
 type AllContributions = {
   [month: string]: MonthContributions;
 };
-function CaixinhaPorPessoa({ contributions }: { contributions: AllContributions }) {
-  const totalPorPessoa: { [person: string]: number } = {};
-
-  people.forEach((person: string | number) => {
-    totalPorPessoa[person] = 0;
-  });
-
-  Object.values(contributions).forEach((month) => {
-    Object.entries(month).forEach(([person, contrib]) => {
-      totalPorPessoa[person] += contrib.caixinha ?? 0;
-    });
-  });
-
-  return (
-    <section className="highlight-box">
-      <h3>Caixinha por Participante</h3>
-      <div className="totals-display" style={{ flexWrap: 'wrap' }}>
-        {people.map((person) => (
-          <div key={person} className="total-card caixinha" style={{ minWidth: 150, margin: '0.5rem' }}>
-            <span>{person}</span>
-            <strong>R$ {totalPorPessoa[person].toFixed(2)}</strong>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
 
 function CountdownBox() {
   const [daysLeft, setDaysLeft] = useState('Calculando...');
